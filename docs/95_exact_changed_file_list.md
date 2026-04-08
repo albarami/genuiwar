@@ -1,14 +1,27 @@
-# GenUIWar — Exact Changed-File List (Phase 0 Foundation)
+# GenUIWar — Exact File List (Phase 0 Foundation)
 
-Generated: 2026-04-08 (Correction pass)
-Source: `git status --short --untracked-files=all`
+Updated: 2026-04-08 (Correction pass 2)
 
 ---
 
-## Pre-existing files (authored by the owner, NOT created by Cursor)
+## Provenance
 
-These files existed in the repository before Cursor work began.
-They are untracked in git because git was not initialized until the scaffold session.
+All 99 files below are **proven** to exist in commit `52ff936` on the `main` branch,
+verified via `git show --stat --name-only 52ff936`.
+
+Because the entire foundation was committed in a single initial commit (no prior
+git history existed), authorship cannot be proven per-file from git alone. The
+distinction between "owner-authored" and "Cursor-authored" files below is **inferred**
+from session knowledge — the owner created the docs/ backbone and .cursor/rules/
+before the Cursor scaffold session began, and the Cursor agent created everything else.
+
+This inference is honest but not independently verifiable from the git log.
+
+---
+
+## Files inferred as owner-authored (pre-existing before Cursor)
+
+These files existed on disk before git init and before the Cursor scaffold session.
 
 ```
 .cursor/rules/00_architecture.mdc
@@ -35,9 +48,11 @@ docs/12_api_contract_overview.md
 docs/13_first_cursor_build_brief.md
 ```
 
-## Files created by Cursor (Phase 0 scaffold)
+Count: 22 files (inferred)
 
-### Root configuration files
+## Files inferred as Cursor-authored (Phase 0 scaffold)
+
+### Root configuration
 
 ```
 .gitignore
@@ -49,7 +64,7 @@ docker-compose.yml
 Makefile
 ```
 
-### Documentation created by Cursor
+### Documentation
 
 ```
 docs/95_exact_changed_file_list.md
@@ -59,7 +74,7 @@ docs/98_initial_execution_plan.md
 docs/99_cursor_understanding_report.md
 ```
 
-### apps/api (FastAPI backend shell)
+### apps/api
 
 ```
 apps/__init__.py
@@ -71,13 +86,12 @@ apps/api/routes/__init__.py
 apps/api/routes/health.py
 ```
 
-### apps/web (Next.js frontend shell)
+### apps/web
 
 ```
-apps/web/next.config.ts
 apps/web/next-env.d.ts
+apps/web/next.config.ts
 apps/web/package.json
-apps/web/postcss.config.mjs
 apps/web/README.md
 apps/web/src/app/globals.css
 apps/web/src/app/layout.tsx
@@ -85,7 +99,10 @@ apps/web/src/app/page.tsx
 apps/web/tsconfig.json
 ```
 
-### apps/worker (worker shell)
+Note: `apps/web/postcss.config.mjs` was in the initial commit but is deleted in
+correction pass 2 (Tailwind removal). It will not exist after this branch merges.
+
+### apps/worker
 
 ```
 apps/worker/__init__.py
@@ -93,7 +110,7 @@ apps/worker/main.py
 apps/worker/README.md
 ```
 
-### packages/schemas (typed domain contracts)
+### packages/schemas
 
 ```
 packages/__init__.py
@@ -109,7 +126,7 @@ packages/schemas/README.md
 packages/schemas/run.py
 ```
 
-### packages/shared (config + helpers)
+### packages/shared
 
 ```
 packages/shared/__init__.py
@@ -164,15 +181,19 @@ tests/unit/__init__.py
 tests/unit/test_schemas.py
 ```
 
----
-
-## Total counts
-
-- Pre-existing (owner-authored): 22 files
-- Created by Cursor: 71 files
-- Total untracked: 93 files
+Count: 77 files in initial commit attributed to Cursor (inferred).
+After correction pass 2: `postcss.config.mjs` deleted, net 76 Cursor-authored files.
 
 ---
 
-Status: exact changed-file list
+## Total
+
+- Initial commit `52ff936`: 99 files (proven by git)
+- Owner-authored: 22 files (inferred)
+- Cursor-authored: 77 files (inferred), reduced to 76 after postcss.config.mjs deletion
+- Authorship split: inferred, not independently provable from git history
+
+---
+
+Status: exact file list (corrected)
 Use: auditability record for Phase 0 scaffold

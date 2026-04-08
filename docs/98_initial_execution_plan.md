@@ -73,9 +73,10 @@ Create initial Pydantic v2 models in `packages/schemas/`:
 
 ### 0.6 Frontend Bootstrap
 - Minimal Next.js app in `apps/web/`
-- App Router structure
-- Tailwind CSS setup
+- App Router structure (proposal — see `docs/96_assumption_register.md`)
+- Plain CSS only — no CSS framework in Phase 0
 - No UI features yet — just the shell
+- CSS framework decision deferred to Phase 5 (Generative UI)
 
 ### 0.7 Worker Bootstrap
 - Minimal worker entry point in `apps/worker/`

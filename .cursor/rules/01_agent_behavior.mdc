@@ -1,0 +1,24 @@
+---
+description: Agent behavior and review discipline
+alwaysApply: true
+---
+
+# Agent behavior rules
+
+- Use asymmetric agents with narrow responsibilities.
+- Required core roles:
+  - Run Router
+  - Ingestion Agent
+  - Linking Agent
+  - Retrieval Agent
+  - Primary Analyst
+  - Calculator Agent
+  - Challenger Agent
+  - Adjudicator Agent
+  - Composer Agent
+  - Clarification Agent
+- The Challenger must operate in **AlMuhasbi** or **Devil’s Advocate** mode.
+- High-materiality claims must always be challenged.
+- The Adjudicator is the final gate before final output.
+- Rejected claims must never survive into final output.
+- If ambiguity blocks safe interpretation, route to clarification rather than guessing.

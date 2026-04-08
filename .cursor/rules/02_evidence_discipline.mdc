@@ -1,0 +1,17 @@
+---
+description: Evidence discipline and no-free-facts policy
+alwaysApply: true
+---
+
+# Evidence discipline rules
+
+- No free facts.
+- No important final claim without evidence, verified calculation, or both.
+- Every important claim must be typed as:
+  - direct
+  - derived
+  - model_based
+- Numeric claims beyond direct raw values require calculation traces.
+- Unsupported claims must be rejected or downgraded explicitly.
+- If evidence is insufficient, ask clarification questions or state uncertainty honestly.
+- Never let fluent prose hide weak support.

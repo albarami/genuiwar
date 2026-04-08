@@ -1,0 +1,28 @@
+---
+description: Core architecture rules for GenUIWar
+alwaysApply: true
+---
+
+# Architecture rules
+
+- Build a modular ministry-grade analytical system, not a loose prototype.
+- Use clear separation between:
+  - frontend UI
+  - backend API
+  - worker jobs
+  - orchestration
+  - parsers
+  - retrieval
+  - calculators
+  - governance
+  - storage
+  - shared schemas
+- Prefer:
+  - FastAPI for backend
+  - Next.js for frontend
+  - Postgres for persistence
+  - worker-based async processing
+- Keep Azure OpenAI behind an adapter layer.
+- Assume synthetic schemas will differ from real ministry data.
+- Design for dynamic schema handling and later ministry adapters.
+- Keep run/event, claim ledger, calculation, and evidence objects as first-class concepts.

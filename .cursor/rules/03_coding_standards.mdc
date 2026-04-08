@@ -1,0 +1,15 @@
+---
+description: Coding standards for GenUIWar
+alwaysApply: true
+---
+
+# Coding standards
+
+- Prefer explicit typed schemas over ad hoc dictionaries.
+- Keep modules small and role-specific.
+- Do not hide business logic in generic utility files.
+- Write tests for foundational behavior.
+- Use version-controlled prompts and templates.
+- Keep parsing, retrieval, orchestration, and calculation logic separate.
+- Favor deterministic state transitions over implicit side effects.
+- Log important run and adjudication events clearly.

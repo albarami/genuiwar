@@ -1,27 +1,37 @@
-# GenUIWar — Exact File List (Phase 0 Foundation)
+# GenUIWar — Foundation File List
 
-Updated: 2026-04-08 (Correction pass 2)
-
----
-
-## Provenance
-
-All 99 files below are **proven** to exist in commit `52ff936` on the `main` branch,
-verified via `git show --stat --name-only 52ff936`.
-
-Because the entire foundation was committed in a single initial commit (no prior
-git history existed), authorship cannot be proven per-file from git alone. The
-distinction between "owner-authored" and "Cursor-authored" files below is **inferred**
-from session knowledge — the owner created the docs/ backbone and .cursor/rules/
-before the Cursor scaffold session began, and the Cursor agent created everything else.
-
-This inference is honest but not independently verifiable from the git log.
+Updated: 2026-04-08 (Correction pass 3)
+Branch: `fix/foundation-correction-2`
 
 ---
 
-## Files inferred as owner-authored (pre-existing before Cursor)
+## Purpose
 
-These files existed on disk before git init and before the Cursor scaffold session.
+Exact path-by-path list of every file in the Phase 0 foundation scaffold.
+
+## Source
+
+The file list below is **proven** by `git ls-files` on branch `fix/foundation-correction-2`.
+There are exactly **98 tracked files** on this branch.
+
+## Authorship provenance
+
+The entire foundation was committed in a single initial commit (`52ff936` on `main`)
+before any per-file git history existed. A second commit (`895914b` on this branch)
+applied correction pass 2. Because no prior git history distinguishes original authorship,
+the split between owner-authored and Cursor-authored files is **inferred from session
+knowledge**, not proven by git.
+
+This limitation is stated honestly. No false precision is claimed.
+
+---
+
+## All tracked files (98 files, proven by `git ls-files`)
+
+### Owner-authored files (inferred — 22 files)
+
+These files are inferred to have existed on disk before git init and before the
+Cursor scaffold session. This cannot be independently verified from git alone.
 
 ```
 .cursor/rules/00_architecture.mdc
@@ -48,11 +58,11 @@ docs/12_api_contract_overview.md
 docs/13_first_cursor_build_brief.md
 ```
 
-Count: 22 files (inferred)
+### Cursor-authored files (inferred — 76 files)
 
-## Files inferred as Cursor-authored (Phase 0 scaffold)
+These files are inferred to have been created by the Cursor scaffold agent.
 
-### Root configuration
+#### Root configuration
 
 ```
 .gitignore
@@ -64,7 +74,7 @@ docker-compose.yml
 Makefile
 ```
 
-### Documentation
+#### Cursor documentation
 
 ```
 docs/95_exact_changed_file_list.md
@@ -74,7 +84,7 @@ docs/98_initial_execution_plan.md
 docs/99_cursor_understanding_report.md
 ```
 
-### apps/api
+#### apps/api
 
 ```
 apps/__init__.py
@@ -86,7 +96,7 @@ apps/api/routes/__init__.py
 apps/api/routes/health.py
 ```
 
-### apps/web
+#### apps/web
 
 ```
 apps/web/next-env.d.ts
@@ -99,10 +109,7 @@ apps/web/src/app/page.tsx
 apps/web/tsconfig.json
 ```
 
-Note: `apps/web/postcss.config.mjs` was in the initial commit but is deleted in
-correction pass 2 (Tailwind removal). It will not exist after this branch merges.
-
-### apps/worker
+#### apps/worker
 
 ```
 apps/worker/__init__.py
@@ -110,7 +117,7 @@ apps/worker/main.py
 apps/worker/README.md
 ```
 
-### packages/schemas
+#### packages/schemas
 
 ```
 packages/__init__.py
@@ -126,7 +133,7 @@ packages/schemas/README.md
 packages/schemas/run.py
 ```
 
-### packages/shared
+#### packages/shared
 
 ```
 packages/shared/__init__.py
@@ -134,7 +141,7 @@ packages/shared/config.py
 packages/shared/README.md
 ```
 
-### packages (placeholder skeletons)
+#### packages (placeholder skeletons)
 
 ```
 packages/agents/__init__.py
@@ -159,7 +166,7 @@ packages/synthetic_data/__init__.py
 packages/synthetic_data/README.md
 ```
 
-### infra
+#### infra
 
 ```
 infra/deployment/README.md
@@ -168,7 +175,7 @@ infra/docker/README.md
 infra/scripts/README.md
 ```
 
-### tests
+#### tests
 
 ```
 tests/__init__.py
@@ -181,19 +188,7 @@ tests/unit/__init__.py
 tests/unit/test_schemas.py
 ```
 
-Count: 77 files in initial commit attributed to Cursor (inferred).
-After correction pass 2: `postcss.config.mjs` deleted, net 76 Cursor-authored files.
-
 ---
 
-## Total
-
-- Initial commit `52ff936`: 99 files (proven by git)
-- Owner-authored: 22 files (inferred)
-- Cursor-authored: 77 files (inferred), reduced to 76 after postcss.config.mjs deletion
-- Authorship split: inferred, not independently provable from git history
-
----
-
-Status: exact file list (corrected)
+Status: foundation file list (correction pass 3)
 Use: auditability record for Phase 0 scaffold

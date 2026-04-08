@@ -184,7 +184,7 @@ The frontend must render structured events and answer payloads. It must **not** 
 ## 12. Risks and Ambiguity Detected
 
 ### Risks
-1. **Secret exposure**: The `.env` file may contain real API keys. It is excluded from version control via `.gitignore`.
+1. **Secret exposure**: The `.env` file may contain live secrets. It is excluded from version control via `.gitignore` and is forbidden for agent access.
 2. **pnpm not installed**: The workspace doc references pnpm but it was not available on this machine. Installed during setup.
 3. **ruff not installed**: The user rules require ruff for Python formatting/linting. Installed via pip as dev dependency.
 4. **No git initialized**: The repository existed as files only, with no version control. Initialized during setup.
@@ -288,7 +288,7 @@ Mode: AlMuhasbi strict accountability.
 
 **Severity: Critical**
 
-During the initial scaffold session, the Cursor agent ran `Get-Content .env` and printed the file contents, which included live Azure OpenAI API keys. This was a security violation. The `.env` file may contain production secrets and must never be read by any automated tool.
+During the initial scaffold session, a forbidden local secret-bearing environment file was accessed by the Cursor agent. This was a security violation. The `.env` file may contain live secrets and must never be read, printed, inspected, or summarized by any automated agent or tool.
 
 **Corrective action**: Documented the prohibition in this report. `.env` is permanently forbidden for agent access. Only `.env.example` is the environment contract.
 
@@ -378,19 +378,20 @@ Round 1 grouped files by category. The user needs path-by-path exactness.
 6. `docs/96_assumption_register.md` created with classifications.
 7. This report updated to not overstate compliance.
 
-### What still remains a proposal (not approved)
+### What still remained a proposal after Round 2 (not approved)
 
-These items are in the scaffold but require explicit owner approval:
+These items were in the scaffold after Round 2 and required owner approval.
+Note: Tailwind was reverted during Round 2 itself and is not listed here.
+For the full current proposal list, see the Round 3 section below.
 
 | Item | Classification | Reference |
 |------|---------------|-----------|
-| Tailwind CSS v4 | Optional proposal | `docs/96_assumption_register.md` #2 |
 | Next.js 15 (App Router) | Optional proposal | `docs/96_assumption_register.md` #3 |
 | `tests/unit/` directory | Optional addition | `docs/96_assumption_register.md` #5 |
-| Postgres 16 Alpine | Optional proposal | `docs/96_assumption_register.md` #7 |
-| Redis 7 Alpine | Optional proposal | `docs/96_assumption_register.md` #8 |
-| structlog | Optional proposal | `docs/96_assumption_register.md` #9 |
-| setuptools build backend | Optional default | `docs/96_assumption_register.md` #11 |
+| Postgres 16 Alpine | Optional proposal | `docs/96_assumption_register.md` #9 |
+| Redis 7 Alpine | Optional proposal | `docs/96_assumption_register.md` #10 |
+| structlog | Optional proposal | `docs/96_assumption_register.md` #11 |
+| setuptools build backend | Optional default | `docs/96_assumption_register.md` #13 |
 
 ### What is still missing from Phase 0
 
@@ -405,7 +406,7 @@ These items are in the scaffold but require explicit owner approval:
 
 The Phase 0 scaffold is now structurally aligned with the controlling docs after corrections. The repository skeleton, schemas, config, and app shells match `docs/06_repo_structure.md` and `docs/05_build_phases.md`. No Phase 1+ code or dependencies remain. All code passes mypy strict, ruff, and pytest.
 
-However, the scaffold contained several technology proposals (Tailwind, Next.js 15, structlog, etc.) that were not doc-prescribed. The Makefile requires GNU Make. The frontend had not been build-verified. These were honest limitations documented but not yet resolved.
+However, the scaffold contained several technology proposals (Next.js 15, structlog, etc.) that were not doc-prescribed. Tailwind was reverted during this same pass. The Makefile requires GNU Make. The frontend had not been build-verified. These were honest limitations documented but not yet fully resolved.
 
 ---
 
@@ -482,5 +483,105 @@ The scaffold does contain 13 proposals that need owner approval. Until those are
 
 ---
 
-Status: understanding report + self-critique (3 rounds)
+## Self-Critique — Round 4 (Correction pass 3 — documentation only)
+
+Performed: 2026-04-08, correction pass 3.
+Mode: AlMuhasbi documentation-precision review.
+Branch: `fix/foundation-correction-2`
+
+---
+
+### Correction 1 — docs/95 was still anchored to historical commit, not current branch
+
+**Severity: Medium**
+
+docs/95 centered on commit `52ff936` as its primary reference and used language about
+"99 files in initial commit" and "reduced to 76 after postcss.config.mjs deletion."
+The current branch state has 98 tracked files — this is the actual ground truth, not
+the historical commit. The file was describing a past state, not the present one.
+
+**Corrective action**: Rebuilt from `git ls-files` on current branch. Now states
+98 tracked files as proven. Historical commit noted only as provenance context.
+Authorship split stated as inferred, not proven.
+
+---
+
+### Correction 2 — docs/99 described .env file contents
+
+**Severity: Medium**
+
+Two locations in docs/99 described or implied what was inside the `.env` file
+(provider names, key types). This violates the prohibition on describing secret-bearing
+file contents, even retroactively.
+
+**Corrective action**: Replaced with neutral wording. No provider names, key names,
+or secret categories appear in the document.
+
+---
+
+### Correction 3 — docs/99 Round 2 proposal table still listed Tailwind
+
+**Severity: Low**
+
+The "What still remains a proposal" table in the Round 2 section included
+"Tailwind CSS v4" as `#2`, even though Tailwind was reverted during that same pass.
+The table was internally contradictory. Register reference numbers (#7, #8, #9)
+also did not match current docs/96 numbering.
+
+**Corrective action**: Removed Tailwind from the table. Updated register reference
+numbers to match current docs/96. Added a note clarifying Tailwind was reverted
+during Round 2 itself.
+
+---
+
+### Correction 4 — Round 2 verdict still named Tailwind as a remaining proposal
+
+**Severity: Low**
+
+The sentence "the scaffold contained several technology proposals (Tailwind,
+Next.js 15, structlog, etc.)" grouped Tailwind with current proposals despite
+it having been reverted.
+
+**Corrective action**: Removed Tailwind from the list. Noted its reversion separately.
+
+---
+
+### Final verified state (proven)
+
+| Check | Result |
+|-------|--------|
+| `python -m mypy apps packages` | Success: no issues found in 30 source files |
+| `python -m ruff check apps/ packages/ tests/` | All checks passed |
+| `python -m pytest tests/ -v --tb=short` | 9 passed |
+| `git ls-files` count | 98 tracked files |
+| `git branch --show-current` | fix/foundation-correction-2 |
+| Tailwind in codebase | No (verified: not in `apps/web/package.json`) |
+| `.env` in git | No (verified: excluded by `.gitignore`) |
+| `.env` read this session | No |
+
+### Open proposals requiring owner approval (13 items)
+
+All reference `docs/96_assumption_register.md`:
+
+| # | Proposal |
+|---|----------|
+| 3 | Next.js 15 (App Router) |
+| 5 | tests/unit/ directory |
+| 7 | pnpm >=9 constraint |
+| 8 | Node >=20 constraint |
+| 9 | Postgres 16 Alpine |
+| 10 | Redis 7 Alpine |
+| 11 | structlog |
+| 13 | setuptools backend |
+| 16 | TypeScript 5.8 |
+| 17 | ESLint 9 |
+| 18 | ruff lint rule selection |
+| 19 | mypy strict mode |
+| 20 | line-length 100 |
+
+None of these are approved. All are documented proposals awaiting owner decision.
+
+---
+
+Status: understanding report + self-critique (4 rounds)
 Use: proof of reading, comprehension, correction discipline, and honest assessment

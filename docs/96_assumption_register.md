@@ -197,11 +197,14 @@ Purpose: Document every assumption introduced during Phase 0 scaffold that was n
 | 29 | Request-scoped UUID as run_id for standalone calcs | Temporary | Present — until orchestration |
 | 30 | pgvector recommended for future vector retrieval | Optional (proposal) | Documented only |
 | 31 | reportlab as dev dependency for PDF fixtures | Optional (proposal) | Present — needs approval |
+| 32 | Centralized `apps/api/dependencies.py` for repo instances | Required (clean architecture) | Present |
+| 33 | `LocalKeywordRetriever` accepts `ChunkRepository` ABC | Required (storage cleanup) | Present |
+| 34 | `packages/retrieval/store.py` is dead code | Fact | Present — can be deleted |
 
 **Items marked "proposal" require owner approval before they become approved decisions.**
 **Items marked "reverted" are no longer in the codebase.**
 
 ---
 
-Status: assumption register (updated Phase 3 hardening)
+Status: assumption register (updated Phase 3 second hardening)
 Use: transparency record of all non-prescribed choices

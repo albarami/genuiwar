@@ -1,56 +1,61 @@
 # GenUIWar — Phase 3 Corrections and Hardening
 
-Generated: 2026-04-09
+Updated: 2026-04-09 (second hardening pass)
 Branch: `feat/phase3-calculations`
 
 ---
 
-## What was wrong in the initial Phase 3 delivery
+## What was wrong
 
-1. **Units support was missing.** Calculation results had no way to express input or output units. Percentage-change results had no `percent` unit. Traces did not indicate units.
-2. **Dedicated trace endpoint was missing.** `docs/12_api_contract_overview.md` specifies "inspect calculation trace" as a distinct API operation, but only `execute` and `get-result` were implemented.
-3. **Storage was raw dicts.** All in-memory stores were untyped `dict[UUID, ...]` in route modules — no abstraction, no path to Postgres.
+1. **Units in trace incomplete.** Schema carried `input_units` and `output_unit`, but the engine only appended the output unit to the trace. Input units were never written to trace steps, making traces incomplete for auditing.
+2. **Trace endpoint missing.** `docs/12_api_contract_overview.md` specifies "inspect calculation trace" as a distinct operation. Only execute and get-result existed.
+3. **Storage bypass.** Routes imported the old `chunk_store` global from `packages/retrieval/store.py` directly, bypassing the typed `ChunkRepository` abstraction. The system was half on repositories (calculations, bundles) and half on a raw global (chunks). The `LocalKeywordRetriever` also took `ChunkStore` directly instead of `ChunkRepository`.
 
-## How units support was added
+## How units-in-trace was fixed
 
-**Schema change (minimal):**
-- Added `input_units: dict[str, str]` and `output_unit: str | None` to `CalculationResult`
-- Added same fields to `CalcRequest`
-
-**Engine behavior:**
-- Percentage-change operations auto-infer `output_unit = "percent"`
-- Callers can explicitly set `output_unit` (e.g., `"SAR"`) which overrides inference
-- `input_units` are passed through for traceability
-- Unit information is appended to the trace when present
-- Operations with no meaningful unit leave `output_unit` as `None`
-
-**No invented units.** Units are caller-supplied or inferred only for unambiguous operations.
+- Engine now appends `input units: a: SAR, b: SAR` to trace when `input_units` is non-empty
+- Engine appends `output unit: percent` to trace when `output_unit` is present
+- When neither is provided, no unit lines appear in the trace
+- Three new tests verify: input units in trace, output unit in trace, no fake units when absent
 
 ## How the trace endpoint was added
 
-- `GET /api/v1/calculations/{calculation_id}/trace`
-- Returns typed `TraceResponse`: `calculation_id`, `operation`, `trace`, `output_unit`
-- 404 if calculation not found
-- Tested in `test_calc_api.py`
+- `GET /api/v1/calculations/{calculation_id}/trace` returns `TraceResponse`
+- `TraceResponse` is typed: `calculation_id`, `operation`, `trace`, `output_unit`
+- Tests cover happy path, 404, and unit presence in trace response
 
-## What persistence enhancement was implemented
+## How storage abstraction was cleaned up
 
-**Implemented: typed storage abstraction layer.**
-- `packages/storage/base.py` — three ABCs: `ChunkRepository`, `BundleRepository`, `CalculationRepository`
-- `packages/storage/memory.py` — in-memory implementations of all three
-- API routes now use these typed repositories instead of raw dicts
-- The `ChunkStore` in `packages/retrieval/store.py` remains as-is for now (it already implements the same interface shape)
+- Created `apps/api/dependencies.py` — centralized repository instances (`chunk_repo`, `bundle_repo`, `calc_repo`)
+- All routes (`files.py`, `evidence.py`, `calculations.py`) now import from `dependencies.py`
+- `LocalKeywordRetriever` now accepts `ChunkRepository` (the abstract interface) instead of `ChunkStore`
+- No route imports `packages.retrieval.store` or `chunk_store` directly
+- The old `packages/retrieval/store.py` is dead code — nothing imports it
+- Tests updated: `test_chunk_store.py` tests `InMemoryChunkRepository`, `test_keyword_retriever.py` uses `InMemoryChunkRepository`, `test_evidence_bundle.py` uses `InMemoryChunkRepository`, `test_retrieval_api.py` clears via `chunk_repo` from dependencies
 
-**Not yet implemented: Postgres persistence.** The abstractions are ready. A Postgres implementation would subclass the same ABCs using SQLAlchemy. See `docs/18_persistence_and_retrieval_roadmap.md` for the migration path.
+## What persistence was implemented
+
+**Implemented:**
+- Typed storage ABCs: `ChunkRepository`, `BundleRepository`, `CalculationRepository`
+- In-memory implementations of all three
+- All API routes use the typed repository abstraction
+- Centralized dependency module for repository instantiation
+
+**Documented only (not yet implemented):**
+- Postgres-backed repositories (see `docs/18_persistence_and_retrieval_roadmap.md`)
+- Full-text search indexing
+- pgvector / semantic retrieval
 
 ## What was deliberately deferred
 
-- Postgres persistence (designed, not implemented)
-- Vector/semantic retrieval (designed, not implemented)
-- Full RAG orchestration (Phase 4)
-- Trend calculations (can be added to operations.py later)
+- Postgres persistence (abstractions ready, implementation deferred)
+- SQLAlchemy models and Alembic migrations
+- Vector retrieval / pgvector
+- Hybrid retrieval
+- Full retrieval redesign
+- Multi-agent orchestration (Phase 4)
 
 ---
 
-Status: Phase 3 corrections and hardening record
+Status: Phase 3 corrections and hardening record (updated)
 Use: traceability for what was fixed and why

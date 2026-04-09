@@ -87,6 +87,12 @@ class CalculationEngine:
         else:
             raise CalculationError(op, f"Unknown operation: {op}")
 
+        if request.input_units:
+            parts = ", ".join(
+                f"{k}: {v}" for k, v in sorted(request.input_units.items())
+            )
+            trace.append(f"input units: {parts}")
+
         output_unit = request.output_unit or _infer_output_unit(op)
 
         if output_unit:

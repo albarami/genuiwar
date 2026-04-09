@@ -3,8 +3,8 @@
 from uuid import uuid4
 
 from packages.retrieval.local import LocalKeywordRetriever
-from packages.retrieval.store import ChunkStore
 from packages.schemas.evidence import CitationAnchor, EvidenceBundle, EvidenceChunk
+from packages.storage import InMemoryChunkRepository
 
 
 def _chunk(content, page=None, section=None, sheet_name=None, row_range=None):
@@ -43,7 +43,7 @@ class TestEvidenceBundleSchema:
 
 class TestCitationPreservation:
     def test_page_anchor_preserved(self) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
         c = _chunk("budget report page one", page=3)
         store.add_chunks([c])
 
@@ -51,7 +51,7 @@ class TestCitationPreservation:
         assert bundle.chunks[0].citation_anchor.page == 3
 
     def test_section_anchor_preserved(self) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
         c = _chunk("workforce summary data", section="Summary")
         store.add_chunks([c])
 
@@ -59,7 +59,7 @@ class TestCitationPreservation:
         assert bundle.chunks[0].citation_anchor.section == "Summary"
 
     def test_sheet_anchor_preserved(self) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
         c = _chunk("budget numbers here", sheet_name="Budget", row_range=(1, 50))
         store.add_chunks([c])
 
@@ -69,7 +69,7 @@ class TestCitationPreservation:
         assert anchor.row_range == (1, 50)
 
     def test_file_ids_populated_from_chunks(self) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
         f1, f2 = uuid4(), uuid4()
         store.add_chunks([
             EvidenceChunk(

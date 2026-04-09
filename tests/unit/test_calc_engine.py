@@ -161,7 +161,7 @@ class TestCalculationEngine:
         )
         assert result.output_unit is None
 
-    def test_unit_appears_in_trace(self) -> None:
+    def test_output_unit_appears_in_trace(self) -> None:
         engine = CalculationEngine()
         result = engine.execute(
             CalcRequest(
@@ -169,4 +169,25 @@ class TestCalculationEngine:
                 inputs={"old": 50, "new": 75},
             )
         )
-        assert any("percent" in step for step in result.trace)
+        assert any("output unit: percent" in step for step in result.trace)
+
+    def test_input_units_appear_in_trace(self) -> None:
+        engine = CalculationEngine()
+        result = engine.execute(
+            CalcRequest(
+                operation="add",
+                inputs={"a": 10, "b": 5},
+                input_units={"a": "SAR", "b": "SAR"},
+            )
+        )
+        assert any("input units:" in step for step in result.trace)
+        assert any("SAR" in step for step in result.trace)
+
+    def test_no_unit_lines_when_absent(self) -> None:
+        engine = CalculationEngine()
+        result = engine.execute(
+            CalcRequest(operation="add", inputs={"a": 1, "b": 2})
+        )
+        for step in result.trace:
+            assert "input units:" not in step
+            assert "output unit:" not in step

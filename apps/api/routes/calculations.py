@@ -7,13 +7,12 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from apps.api.dependencies import calc_repo
 from packages.calculators import CalcRequest, CalculationEngine, CalculationError
 from packages.schemas.calculation import CalculationResult
-from packages.storage import InMemoryCalculationRepository
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
 
-_repo = InMemoryCalculationRepository()
 _engine = CalculationEngine()
 
 
@@ -33,14 +32,14 @@ async def execute_calculation(req: CalcRequest) -> CalculationResult:
             detail=f"Invalid calculation inputs: {exc}",
         ) from exc
 
-    _repo.save(result)
+    calc_repo.save(result)
     return result
 
 
 @router.get("/{calculation_id}", response_model=CalculationResult)
 async def get_calculation(calculation_id: UUID) -> CalculationResult:
     """Retrieve a stored calculation result by ID."""
-    result = _repo.get(calculation_id)
+    result = calc_repo.get(calculation_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Calculation not found")
     return result
@@ -60,7 +59,7 @@ async def get_calculation_trace(
     calculation_id: UUID,
 ) -> TraceResponse:
     """Return only the trace payload for a calculation."""
-    result = _repo.get(calculation_id)
+    result = calc_repo.get(calculation_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Calculation not found")
     return TraceResponse(

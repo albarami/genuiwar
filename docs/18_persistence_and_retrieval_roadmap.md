@@ -1,128 +1,107 @@
 # GenUIWar — Persistence and Retrieval Roadmap
 
-Generated: 2026-04-09
+Updated: 2026-04-09
 
 ---
 
-## Why Postgres should replace in-memory stores
+## Why Postgres helps this system
 
-The system currently uses in-memory dicts and lists for:
-- file metadata (`_file_store` in files.py)
-- evidence chunks (`ChunkStore` in retrieval/store.py)
-- evidence bundles (`InMemoryBundleRepository`)
-- calculation results (`InMemoryCalculationRepository`)
-
-These are volatile — data is lost on restart. For a ministry-grade system,
-persistence is required for auditability, run reuse, and evidence traceability.
+The system currently uses in-memory stores for all data. Data is lost on restart.
+For a ministry-grade system, persistence is required for:
+- auditability (calculation traces, claim ledger entries must survive restarts)
+- run reuse (evidence bundles must be queryable across sessions)
+- evidence traceability (chunks must link back to source files permanently)
 
 Postgres is the prescribed persistence backend per `.cursor/rules/00_architecture.mdc`.
 
 ## What should be persisted first
 
-Recommended migration order:
+Recommended order follows data dependency:
 
-1. **Calculation results** — needed for claim ledger `calculation_result_ids` references
-2. **Evidence chunks** — needed for claim ledger `evidence_refs` references
-3. **Evidence bundles** — needed for run-to-bundle linkage
-4. **File metadata** — needed for conversation-to-file relationships
+1. **Calculation results** — claim ledger references `calculation_result_ids`
+2. **Evidence bundles** — runs reference bundle IDs
+3. **Evidence chunks** — bundles and claims reference chunk/evidence IDs
+4. **File metadata** — chunks reference file IDs
 5. **Runs and events** — needed for Phase 4 orchestration
 6. **Claim ledger entries** — needed for Phase 4 adjudication
 7. **Conversations and messages** — needed for Phase 5 UI
 
-This order follows dependency: claims reference calculations and evidence,
-runs reference bundles, etc.
+## Current state (implemented)
 
-## Storage abstraction (implemented)
+| Component | Storage | Abstraction |
+|-----------|---------|-------------|
+| Calculation results | In-memory (`InMemoryCalculationRepository`) | `CalculationRepository` ABC |
+| Evidence bundles | In-memory (`InMemoryBundleRepository`) | `BundleRepository` ABC |
+| Evidence chunks | In-memory (`InMemoryChunkRepository`) | `ChunkRepository` ABC |
+| File metadata | In-memory dict in `files.py` | No abstraction yet |
 
-`packages/storage/base.py` defines three abstract repositories:
-- `ChunkRepository` — add, get_all, get_by_file, count, clear
-- `BundleRepository` — save, get
-- `CalculationRepository` — save, get
-
-`packages/storage/memory.py` provides in-memory implementations.
-API routes already use these typed abstractions.
-
-To migrate to Postgres: implement the same ABCs using SQLAlchemy models
-and swap the instantiation — no route code changes needed.
-
-## How retrieval should evolve
-
-### Current: Local keyword retrieval (Phase 2)
-- `LocalKeywordRetriever` in `packages/retrieval/local.py`
-- Tokenize query into keywords, score by overlap
-- In-memory chunk store
-- Sufficient for Phase 2-3 development
-
-### Next: Postgres full-text retrieval
-- Replace `ChunkStore` with a Postgres-backed `ChunkRepository`
-- Use Postgres `tsvector` / `ts_query` for full-text search
-- Keep the `BaseRetriever` interface unchanged
-- Create `PostgresKeywordRetriever(BaseRetriever)`
-
-### Future: pgvector semantic retrieval
-- Add an embedding column to the chunk table
-- Use `pgvector` extension for similarity search
-- Create `PgVectorRetriever(BaseRetriever)`
-- Embeddings generated via the Azure OpenAI embedding deployment
-
-### Future: Hybrid retrieval
-- Combine keyword + vector scores
-- Create `HybridRetriever(BaseRetriever)` that merges results
-- Configurable weighting between keyword and semantic
-
-### Optional adapter: Azure AI Search
-- Per `docs/01_system_architecture.md`: "adapters for later Azure Search"
-- Create `AzureSearchRetriever(BaseRetriever)` if needed
-- Uses Azure Search index instead of local Postgres
-- Not recommended as the primary path; Postgres + pgvector is simpler
-
-## Recommended: pgvector
-
-pgvector is recommended over a separate vector DB because:
-- It runs inside the same Postgres instance (no additional infrastructure)
-- It is compatible with SQLAlchemy
-- It supports both exact and approximate nearest-neighbor search
-- It integrates naturally with the existing Postgres full-text search
-
-## Chunk indexing evolution
-
-| Phase | Indexing approach |
-|-------|-----------------|
-| Current | In-memory list, no indexing |
-| Postgres FTS | `tsvector` column with GIN index on chunk content |
-| pgvector | `vector` column with HNSW or IVFFlat index on embeddings |
-| Hybrid | Both GIN and vector indexes on the same table |
-
-## Metadata indexing
-
-Evidence chunks have `metadata: dict[str, str]` and `citation_anchor` fields.
-For efficient filtering:
-- Index `file_id` (already used for get_by_file)
-- Index `content_type` (used for content_type filter)
-- Index `citation_anchor.sheet_name` (used for sheet_name filter)
-- Consider JSONB index on `metadata` for schema-specific queries
-
-## Bundle persistence
-
-Evidence bundles should be persisted with:
-- The bundle ID and query
-- References to chunk IDs (not copies of chunks)
-- The run ID that triggered the retrieval
-- Timestamp
-
-This avoids data duplication and allows bundle reconstruction.
+All API routes use the typed repository interfaces via `apps/api/dependencies.py`.
+To migrate to Postgres: implement the ABCs with SQLAlchemy and swap the imports.
 
 ## Exact recommended implementation order
 
-1. Set up Alembic migrations (already a dependency)
-2. Create SQLAlchemy models for `CalculationResult`
-3. Create `PostgresCalculationRepository(CalculationRepository)`
-4. Verify with existing tests (swap repository, tests should still pass)
-5. Repeat for chunks and bundles
-6. Add `tsvector` column and `PostgresKeywordRetriever`
-7. Add pgvector when embedding infrastructure is ready
+1. **Set up Alembic** (already a dependency)
+2. **Create SQLAlchemy models** for `CalculationResult`, `EvidenceChunk`, `EvidenceBundle`
+3. **Create `PostgresCalculationRepository(CalculationRepository)`**
+4. **Verify** existing tests still pass with the new implementation
+5. **Repeat** for chunks and bundles
+6. **Add indexing** for chunks:
+   - `file_id` index (used by `get_by_file`)
+   - `content_type` index (used by content_type filter)
+   - GIN index on `citation_anchor` JSONB (for sheet_name, page, section lookups)
+   - `tsvector` column + GIN index on `content` (for full-text search)
+7. **Create `PostgresKeywordRetriever(BaseRetriever)`** using `ts_query`
+8. **Add pgvector** when embedding infrastructure is ready
+
+## How retrieval should evolve
+
+### Current: Local keyword retrieval
+- `LocalKeywordRetriever` scores by keyword token overlap
+- Operates over `ChunkRepository.get_all()`
+- Sufficient for Phase 2-3 development
+
+### Next: Postgres full-text retrieval
+- `tsvector` column on chunk content
+- `ts_query` for ranked search
+- `PostgresKeywordRetriever(BaseRetriever)` — same interface, better scoring
+
+### Future: pgvector semantic retrieval
+- Embedding column on chunk table
+- `pgvector` extension for similarity search
+- `PgVectorRetriever(BaseRetriever)`
+
+### Future: Hybrid retrieval
+- Combine keyword + vector scores
+- `HybridRetriever(BaseRetriever)`
+
+## Is pgvector recommended?
+
+Yes. pgvector runs inside the same Postgres instance — no additional infrastructure.
+It supports both exact and approximate nearest-neighbor search and integrates
+naturally with Postgres full-text search for hybrid approaches.
+
+## Is Azure AI Search still relevant?
+
+Yes, as a later optional adapter per `docs/01_system_architecture.md`:
+"adapters for later Azure Search / ministry connectors if needed."
+It is not recommended as the primary path. Postgres + pgvector is simpler.
+
+## Index design for chunk persistence
+
+When chunks move to Postgres, the table should include:
+
+| Column | Type | Index |
+|--------|------|-------|
+| chunk_id | UUID PK | Primary |
+| file_id | UUID | B-tree |
+| content | TEXT | GIN (tsvector) |
+| content_type | VARCHAR | B-tree |
+| citation_anchor | JSONB | GIN |
+| metadata | JSONB | GIN (optional) |
+| embedding | vector(3072) | HNSW (future) |
+| created_at | TIMESTAMPTZ | B-tree |
 
 ---
 
-Status: persistence and retrieval roadmap
+Status: persistence and retrieval roadmap (updated)
 Use: implementation guide for storage evolution

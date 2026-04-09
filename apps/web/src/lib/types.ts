@@ -81,17 +81,21 @@ export interface EvidenceChunk {
 export interface ClaimLedgerEntry {
   claim_id: string;
   run_id: string;
+  parent_claim_id: string | null;
   claim_text: string;
   claim_type: string;
+  claim_scope: string | null;
   support_status: string;
   confidence_grade: string;
   materiality: string;
   evidence_refs: string[];
   calculation_result_ids: string[];
+  assumptions: string[];
   challenge_flags: string[];
   adjudication_status: AdjudicationStatus;
   adjudication_reason: string | null;
   created_by_agent: string | null;
+  created_at: string;
 }
 
 export interface AnswerBlock {
@@ -135,6 +139,8 @@ export interface FileDocument {
   content_hash: string | null;
   page_count: number | null;
   sheet_names: string[] | null;
+  detected_schema: Record<string, unknown> | null;
+  uploaded_at: string;
 }
 
 export interface FileUploadResponse {
@@ -160,6 +166,8 @@ export interface CalculationResult {
   trace: string[];
   input_units: Record<string, string>;
   output_unit: string | null;
+  evidence_refs: string[];
+  created_at: string;
 }
 
 /** UI state for the run lifecycle */

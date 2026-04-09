@@ -77,14 +77,24 @@ The `validate_identifier_usage` function checks:
 
 `packages/agents/context_loader.py` provides `build_dataset_context()`:
 - Accepts `list[FileDocument]` and optional user-supplied `DatasetContext`
-- User dictionary takes precedence when provided
-- Falls back to parsed file metadata (detected_schema, sheet_names)
-- Always includes default identifier rules (EID per-table, QID per-table)
-- Infers evidence type: XLSX/CSV = quantitative, DOCX/PDF/PPTX = qualitative
+- When a user dictionary is provided:
+  - user-defined tables and fields are authoritative
+  - parsed metadata fills only missing fields on user-defined tables
+  - user semantic_name and identifier_scope are never overridden
+- When no user dictionary is provided:
+  - context is built entirely from parsed file metadata
+  - identifier fields are flagged conservatively (scope="unknown")
+- Default identifier rules (EID per-table, QID per-table) always included
+- Evidence type inferred: XLSX/CSV = quantitative, DOCX/PDF/PPTX = qualitative
 
-The `data_type.xlsx` file parser is not yet implemented — the loader accepts
+The runs API (`POST /api/v1/runs`) calls `build_dataset_context()` at runtime:
+- Looks up registered `FileDocument` objects from prior uploads
+- Accepts optional `user_data_dictionary` in the request body
+- Produces a merged `DatasetContext` before the orchestrator runs
+
+The `data_type.xlsx` file parser is not yet implemented. The loader accepts
 a pre-built `DatasetContext` from any source. A dedicated parser for
-user-supplied data dictionary files is deferred.
+raw Excel data dictionary files is deferred.
 
 ---
 

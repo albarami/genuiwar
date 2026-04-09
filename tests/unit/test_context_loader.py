@@ -104,3 +104,70 @@ class TestContextLoader:
         patterns = {r.pattern for r in ctx.identifier_rules}
         assert "eid" in patterns
         assert "qid" in patterns
+
+    def test_user_dict_enriched_with_parsed_gaps(self) -> None:
+        fid = uuid4()
+        user_dict = DatasetContext(
+            tables=[
+                TableContext(
+                    table_name="data.csv",
+                    source=SourceLocator(file_id=fid),
+                    fields=[
+                        FieldDefinition(
+                            source_field_name="EID",
+                            semantic_name="establishment_eid",
+                            field_type=FieldType.IDENTIFIER,
+                            identifier_scope="establishment",
+                        )
+                    ],
+                )
+            ],
+            quantitative_sources=[fid],
+        )
+        doc = FileDocument(
+            original_filename="data.csv",
+            file_type=FileType.CSV,
+            file_size_bytes=100,
+            storage_path="/tmp/data.csv",
+            detected_schema={"headers": ["EID", "salary", "date"]},
+        )
+        ctx = build_dataset_context([doc], user_data_dictionary=user_dict)
+
+        table = ctx.tables[0]
+        assert table.table_name == "data.csv"
+        assert table.fields[0].semantic_name == "establishment_eid"
+        field_names = {f.source_field_name for f in table.fields}
+        assert "salary" in field_names
+        assert "date" in field_names
+
+    def test_user_dict_fields_not_overridden(self) -> None:
+        fid = uuid4()
+        user_dict = DatasetContext(
+            tables=[
+                TableContext(
+                    table_name="data.csv",
+                    source=SourceLocator(file_id=fid),
+                    fields=[
+                        FieldDefinition(
+                            source_field_name="EID",
+                            semantic_name="my_custom_meaning",
+                            field_type=FieldType.IDENTIFIER,
+                        )
+                    ],
+                )
+            ],
+        )
+        doc = FileDocument(
+            original_filename="data.csv",
+            file_type=FileType.CSV,
+            file_size_bytes=100,
+            storage_path="/tmp/data.csv",
+            detected_schema={"headers": ["EID", "value"]},
+        )
+        ctx = build_dataset_context([doc], user_data_dictionary=user_dict)
+
+        eid_field = next(
+            f for f in ctx.tables[0].fields
+            if f.source_field_name == "EID"
+        )
+        assert eid_field.semantic_name == "my_custom_meaning"

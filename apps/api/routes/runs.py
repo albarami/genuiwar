@@ -8,14 +8,10 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from apps.api.dependencies import chunk_repo
-from packages.agents.adjudicator import DeterministicAdjudicator
-from packages.agents.challenger import DeterministicChallenger
-from packages.agents.clarification import DeterministicClarificationAgent
-from packages.agents.composer import DeterministicComposer
-from packages.agents.primary_analyst import DeterministicPrimaryAnalyst
-from packages.agents.run_router import DeterministicRunRouter
+from packages.agents.factory import build_agents
 from packages.calculators import CalculationEngine
 from packages.orchestration import RunOrchestrator, RunResult
+from packages.retrieval.local import LocalKeywordRetriever
 from packages.schemas.dataset_context import DatasetContext
 from packages.schemas.enums import RunCategory, RunMode
 from packages.schemas.run import Run, RunEvent
@@ -34,13 +30,15 @@ _results: dict[UUID, RunResult] = {}
 
 
 def _build_orchestrator() -> RunOrchestrator:
+    agents = build_agents()
     return RunOrchestrator(
-        run_router=DeterministicRunRouter(),
-        primary_analyst=DeterministicPrimaryAnalyst(),
-        challenger=DeterministicChallenger(),
-        adjudicator=DeterministicAdjudicator(),
-        composer=DeterministicComposer(),
-        clarification_agent=DeterministicClarificationAgent(),
+        run_router=agents.run_router,
+        primary_analyst=agents.primary_analyst,
+        challenger=agents.challenger,
+        adjudicator=agents.adjudicator,
+        composer=agents.composer,
+        clarification_agent=agents.clarification_agent,
+        retriever=LocalKeywordRetriever(chunk_repo),
         chunk_repo=chunk_repo,
         run_repo=_run_repo,
         calc_engine=CalculationEngine(),

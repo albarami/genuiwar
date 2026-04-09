@@ -10,6 +10,7 @@ from packages.agents.primary_analyst import DeterministicPrimaryAnalyst
 from packages.agents.run_router import DeterministicRunRouter
 from packages.calculators import CalculationEngine
 from packages.orchestration import RunOrchestrator
+from packages.retrieval.local import LocalKeywordRetriever
 from packages.schemas.dataset_context import (
     DatasetContext,
     EvidenceSourceType,
@@ -27,6 +28,7 @@ def _build_orchestrator(
     chunk_repo: InMemoryChunkRepository | None = None,
     run_repo: InMemoryRunRepository | None = None,
 ) -> RunOrchestrator:
+    cr = chunk_repo or InMemoryChunkRepository()
     return RunOrchestrator(
         run_router=DeterministicRunRouter(),
         primary_analyst=DeterministicPrimaryAnalyst(),
@@ -34,7 +36,8 @@ def _build_orchestrator(
         adjudicator=DeterministicAdjudicator(),
         composer=DeterministicComposer(),
         clarification_agent=DeterministicClarificationAgent(),
-        chunk_repo=chunk_repo or InMemoryChunkRepository(),
+        retriever=LocalKeywordRetriever(cr),
+        chunk_repo=cr,
         run_repo=run_repo or InMemoryRunRepository(),
         calc_engine=CalculationEngine(),
     )

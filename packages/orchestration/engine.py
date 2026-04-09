@@ -28,8 +28,13 @@ from packages.agents.run_router import (
     RunRouterInput,
 )
 from packages.calculators import CalculationEngine
+from packages.governance.identifier_safety import validate_identifier_usage
+from packages.governance.no_free_facts import (
+    validate_answer_no_free_facts,
+    validate_claims_safe_for_composition,
+)
 from packages.orchestration.events import EventEmitter
-from packages.retrieval.local import LocalKeywordRetriever
+from packages.retrieval.base import BaseRetriever
 from packages.schemas.answer import FinalAnswerPayload
 from packages.schemas.claim import ClaimLedgerEntry
 from packages.schemas.clarification import ClarificationRequest
@@ -69,6 +74,7 @@ class RunOrchestrator:
         adjudicator: Any,
         composer: Any,
         clarification_agent: Any,
+        retriever: BaseRetriever,
         chunk_repo: ChunkRepository,
         run_repo: RunRepository,
         calc_engine: CalculationEngine,
@@ -79,6 +85,7 @@ class RunOrchestrator:
         self._adjudicator = adjudicator
         self._composer = composer
         self._clarification = clarification_agent
+        self._retriever = retriever
         self._chunk_repo = chunk_repo
         self._run_repo = run_repo
         self._calc_engine = calc_engine
@@ -146,8 +153,7 @@ class RunOrchestrator:
                 clarification_request=clar_request,
             )
 
-        retriever = LocalKeywordRetriever(self._chunk_repo)
-        bundle = retriever.retrieve(query=question, top_k=8)
+        bundle = self._retriever.retrieve(query=question, top_k=8)
 
         emitter.emit(
             "retrieval.bundle_selected", EventGroup.RETRIEVAL,
@@ -221,6 +227,32 @@ class RunOrchestrator:
             if c.adjudication_status == AdjudicationStatus.REJECTED
         ]
 
+        # --- Pre-compose governance ---
+        composition_violations = validate_claims_safe_for_composition(composable)
+        identifier_violations = validate_identifier_usage(
+            composable, dataset_context
+        )
+        pre_violations = composition_violations + identifier_violations
+
+        if pre_violations:
+            emitter.emit(
+                "adjudication.governance_violation",
+                EventGroup.ADJUDICATION,
+                "Pre-compose governance violations detected",
+                payload={"violations": pre_violations},
+            )
+            run.status = RunStatus.FAILED
+            run.completed_at = datetime.now(tz=UTC)
+            emitter.emit(
+                "run.completed", EventGroup.RUN_LIFECYCLE,
+                "Run failed: governance violations",
+            )
+            return RunResult(
+                run=run,
+                events=emitter.events,
+                claims=adj_output.adjudicated_claims,
+            )
+
         composer_input = ComposerInput(
             claims=composable,
             run_id=run.run_id,
@@ -228,6 +260,27 @@ class RunOrchestrator:
         )
         answer: FinalAnswerPayload = self._composer.execute(input=composer_input)
         answer.rejected_claim_ids = [c.claim_id for c in rejected]
+
+        # --- Post-compose governance ---
+        answer_violations = validate_answer_no_free_facts(answer, composable)
+        if answer_violations:
+            emitter.emit(
+                "answer.governance_violation",
+                EventGroup.ANSWER_RENDERING,
+                "Post-compose no-free-facts violations detected",
+                payload={"violations": answer_violations},
+            )
+            run.status = RunStatus.FAILED
+            run.completed_at = datetime.now(tz=UTC)
+            emitter.emit(
+                "run.completed", EventGroup.RUN_LIFECYCLE,
+                "Run failed: answer contains free facts",
+            )
+            return RunResult(
+                run=run,
+                events=emitter.events,
+                claims=adj_output.adjudicated_claims,
+            )
 
         emitter.emit(
             "answer.completed", EventGroup.ANSWER_RENDERING,

@@ -73,7 +73,20 @@ The `validate_identifier_usage` function checks:
 - No source-field overloading without explicit scoping
 - No qualitative evidence silently treated as quantitative
 
+## Operational path (implemented)
+
+`packages/agents/context_loader.py` provides `build_dataset_context()`:
+- Accepts `list[FileDocument]` and optional user-supplied `DatasetContext`
+- User dictionary takes precedence when provided
+- Falls back to parsed file metadata (detected_schema, sheet_names)
+- Always includes default identifier rules (EID per-table, QID per-table)
+- Infers evidence type: XLSX/CSV = quantitative, DOCX/PDF/PPTX = qualitative
+
+The `data_type.xlsx` file parser is not yet implemented — the loader accepts
+a pre-built `DatasetContext` from any source. A dedicated parser for
+user-supplied data dictionary files is deferred.
+
 ---
 
-Status: data dictionary and identifier rules
+Status: data dictionary and identifier rules (implemented)
 Use: governance reference for schema interpretation and identifier safety

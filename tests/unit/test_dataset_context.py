@@ -29,12 +29,12 @@ class TestDatasetContext:
                     source=SourceLocator(file_id=fid, sheet_name="Sheet1"),
                     fields=[
                         FieldDefinition(
-                            field_name="eid",
+                            source_field_name="eid",
                             field_type=FieldType.IDENTIFIER,
                             identifier_scope="establishment",
                         ),
                         FieldDefinition(
-                            field_name="count",
+                            source_field_name="count",
                             field_type=FieldType.NUMERIC,
                         ),
                     ],
@@ -76,11 +76,28 @@ class TestDatasetContext:
         )
         assert ctx.tables[0].evidence_type == EvidenceSourceType.QUALITATIVE
 
-    def test_identifier_rules_as_strings(self) -> None:
+    def test_identifier_rules_typed(self) -> None:
+        from packages.schemas.dataset_context import IdentifierRule
+
         ctx = DatasetContext(
             identifier_rules=[
-                "EID is per-table; do not assume global scope",
-                "QID is per-table",
+                IdentifierRule(
+                    pattern="eid",
+                    scope="establishment",
+                    description="Per-table; do not assume global scope",
+                ),
+                IdentifierRule(pattern="qid", scope="person"),
             ]
         )
         assert len(ctx.identifier_rules) == 2
+        assert ctx.identifier_rules[0].scope == "establishment"
+
+    def test_field_semantic_name(self) -> None:
+        field = FieldDefinition(
+            source_field_name="EID",
+            semantic_name="establishment_eid",
+            field_type=FieldType.IDENTIFIER,
+            identifier_scope="establishment",
+        )
+        assert field.source_field_name == "EID"
+        assert field.semantic_name == "establishment_eid"

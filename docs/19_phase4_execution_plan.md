@@ -25,18 +25,24 @@ Calculator is the existing Phase 3 service, not a new agent.
 Agents are dual-mode: deterministic for tests, Azure OpenAI for runtime.
 Agent mode is set by explicit `AGENT_MODE` config, not inferred.
 
-## Deliverables
+## Schema interpretation
 
-1. `packages/schemas/dataset_context.py` — DatasetContext, TableContext, FieldDefinition, JoinRule, SourceLocator
-2. `packages/agents/llm_adapter.py` — LLMAdapter ABC + Azure + Deterministic
-3. `packages/schemas/answer.py` — FinalAnswerPayload, AnswerBlock, AnswerBlockType
-4. `packages/agents/` — 6 agent contracts with dual implementations
-5. `packages/storage/` — Phase 4 repository ABCs + in-memory implementations
-6. `packages/orchestration/events.py` — EventEmitter
-7. `packages/orchestration/engine.py` — RunOrchestrator
-8. `packages/governance/` — no_free_facts + identifier_safety validators
-9. `apps/api/routes/runs.py` — runs API
-10. Tests for all of the above
+`FieldDefinition` distinguishes:
+- `source_field_name` — the actual column name in raw data (e.g., `EID`)
+- `semantic_name` — the normalized meaning (e.g., `establishment_eid`)
+
+This separation is required because raw field names like `EID` may appear
+with overloaded meanings across different tables.
+
+`IdentifierRule` is a typed model (not `list[str]`) with `pattern`, `scope`, and `description`.
+
+`JoinRule.join_type` uses the `JoinType` enum (not a free string).
+
+### Semantic authority hierarchy
+
+1. **Global governance/safety rules** from `docs/20_data_dictionary_and_identifier_rules.md` — hard-coded system-wide constraints (e.g., "EID is per-table scoped")
+2. **User-supplied per-table data dictionary** (e.g., `data_type.xlsx`) — explicit field definitions, join rules, and identifier scoping for specific tables. When more specific than global rules, the user's per-table mapping takes precedence for that table.
+3. **Parsed file metadata** — `detected_schema`, `sheet_names`, column headers — supporting fallback source only. Must not override a data dictionary when one exists.
 
 ## Event types
 

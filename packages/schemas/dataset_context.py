@@ -52,10 +52,24 @@ class JoinRule(BaseModel):
     description: str = ""
 
 
-class FieldDefinition(BaseModel):
-    """Definition of a single field within a table."""
+class IdentifierRule(BaseModel):
+    """Typed governance rule for a specific identifier pattern."""
 
-    field_name: str
+    pattern: str
+    scope: str
+    description: str = ""
+
+
+class FieldDefinition(BaseModel):
+    """Definition of a single field within a table.
+
+    source_field_name is the actual column name in the raw data.
+    semantic_name is the normalized meaning (e.g., establishment_eid).
+    These may differ when raw column names are ambiguous or overloaded.
+    """
+
+    source_field_name: str
+    semantic_name: str | None = None
     description: str = ""
     field_type: FieldType
     identifier_scope: str | None = None
@@ -77,6 +91,6 @@ class DatasetContext(BaseModel):
 
     tables: list[TableContext] = Field(default_factory=list)
     join_rules: list[JoinRule] = Field(default_factory=list)
-    identifier_rules: list[str] = Field(default_factory=list)
+    identifier_rules: list[IdentifierRule] = Field(default_factory=list)
     qualitative_sources: list[UUID] = Field(default_factory=list)
     quantitative_sources: list[UUID] = Field(default_factory=list)

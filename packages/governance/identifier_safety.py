@@ -20,7 +20,8 @@ def validate_identifier_usage(
     for table in context.tables:
         for field in table.fields:
             if field.field_type == "identifier":
-                identifier_fields.setdefault(field.field_name.lower(), []).append(
+                key = (field.semantic_name or field.source_field_name).lower()
+                identifier_fields.setdefault(key, []).append(
                     table.table_name
                 )
 

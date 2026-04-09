@@ -36,7 +36,7 @@ def _ctx_with_shared_eid() -> DatasetContext:
                 source=SourceLocator(file_id=fid),
                 fields=[
                     FieldDefinition(
-                        field_name="eid",
+                        source_field_name="eid",
                         field_type=FieldType.IDENTIFIER,
                         identifier_scope="establishment",
                     )
@@ -47,7 +47,7 @@ def _ctx_with_shared_eid() -> DatasetContext:
                 source=SourceLocator(file_id=fid),
                 fields=[
                     FieldDefinition(
-                        field_name="eid",
+                        source_field_name="eid",
                         field_type=FieldType.IDENTIFIER,
                         identifier_scope="establishment",
                     )
@@ -87,7 +87,7 @@ class TestIdentifierSafety:
                     source=SourceLocator(file_id=fid),
                     fields=[
                         FieldDefinition(
-                            field_name="eid",
+                            source_field_name="eid",
                             field_type=FieldType.IDENTIFIER,
                         )
                     ],

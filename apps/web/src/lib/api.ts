@@ -49,12 +49,17 @@ export async function getFileMetadata(
 
 export async function createRun(
   question: string,
-  fileIds: string[]
+  fileIds: string[],
+  userDict?: Record<string, unknown>
 ): Promise<RunResult> {
   return fetchJSON<RunResult>(`${BASE_URL}/runs`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, file_ids: fileIds }),
+    body: JSON.stringify({
+      question,
+      file_ids: fileIds,
+      user_data_dictionary: userDict ?? null,
+    }),
   });
 }
 

@@ -13,6 +13,8 @@ const mockFile: FileUploadResponse = {
     content_hash: null,
     page_count: null,
     sheet_names: ["Sheet1"],
+    detected_schema: null,
+    uploaded_at: "2026-01-01T00:00:00Z",
   },
   chunk_count: 5,
   parse_warnings: [],

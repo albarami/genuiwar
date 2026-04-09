@@ -85,6 +85,10 @@ async def upload_file(file: UploadFile) -> FileUploadResponse:
     normalized_doc = result.document
     chunk_repo.add_chunks(result.chunks)
 
+    from apps.api.routes.runs import register_file_document
+
+    register_file_document(normalized_doc)
+
     response = FileUploadResponse(
         file_document=normalized_doc,
         chunk_count=len(result.chunks),

@@ -1,0 +1,127 @@
+"""Run creation, execution, and inspection API routes."""
+
+from __future__ import annotations
+
+from uuid import UUID, uuid4
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+
+from apps.api.dependencies import chunk_repo
+from packages.agents.context_loader import build_dataset_context
+from packages.agents.factory import build_agents
+from packages.calculators import CalculationEngine
+from packages.orchestration import RunOrchestrator, RunResult
+from packages.retrieval.local import LocalKeywordRetriever
+from packages.schemas.dataset_context import DatasetContext
+from packages.schemas.document import FileDocument
+from packages.schemas.enums import RunCategory, RunMode
+from packages.schemas.run import Run, RunEvent
+from packages.storage.memory import (
+    InMemoryClaimLedgerRepository,
+    InMemoryRunEventRepository,
+    InMemoryRunRepository,
+)
+
+router = APIRouter(prefix="/runs", tags=["runs"])
+
+_run_repo = InMemoryRunRepository()
+_event_repo = InMemoryRunEventRepository()
+_claim_repo = InMemoryClaimLedgerRepository()
+_results: dict[UUID, RunResult] = {}
+_file_docs: dict[UUID, FileDocument] = {}
+
+
+def register_file_document(doc: FileDocument) -> None:
+    """Called by the upload route to register parsed file metadata."""
+    _file_docs[doc.file_id] = doc
+
+
+def _build_orchestrator() -> RunOrchestrator:
+    agents = build_agents()
+    return RunOrchestrator(
+        run_router=agents.run_router,
+        primary_analyst=agents.primary_analyst,
+        challenger=agents.challenger,
+        adjudicator=agents.adjudicator,
+        composer=agents.composer,
+        clarification_agent=agents.clarification_agent,
+        retriever=LocalKeywordRetriever(chunk_repo),
+        chunk_repo=chunk_repo,
+        run_repo=_run_repo,
+        calc_engine=CalculationEngine(),
+    )
+
+
+class CreateRunRequest(BaseModel):
+    """Request body for creating and executing a run."""
+
+    question: str
+    conversation_id: UUID = Field(default_factory=uuid4)
+    file_ids: list[UUID] = Field(default_factory=list)
+    user_data_dictionary: DatasetContext | None = None
+
+
+@router.post("", response_model=RunResult)
+async def create_run(req: CreateRunRequest) -> RunResult:
+    """Create and execute a run.
+
+    Builds DatasetContext from:
+    1. user_data_dictionary (if provided, authoritative)
+    2. registered file metadata (fallback for uncovered files)
+    3. default identifier rules (always included)
+    """
+    docs = [_file_docs[fid] for fid in req.file_ids if fid in _file_docs]
+    dataset_context = build_dataset_context(
+        file_documents=docs,
+        user_data_dictionary=req.user_data_dictionary,
+    )
+
+    run = Run(
+        conversation_id=req.conversation_id,
+        run_category=RunCategory.QUESTION_ANSWERING,
+        run_mode=RunMode.FRESH,
+        question=req.question,
+    )
+
+    orchestrator = _build_orchestrator()
+    result = orchestrator.execute_run(
+        run=run,
+        question=req.question,
+        dataset_context=dataset_context,
+    )
+
+    _run_repo.save(result.run)
+    for event in result.events:
+        _event_repo.save(event)
+    _claim_repo.save_many(result.claims)
+    _results[run.run_id] = result
+
+    return result
+
+
+@router.get("/{run_id}", response_model=RunResult)
+async def get_run(run_id: UUID) -> RunResult:
+    """Get run status and result."""
+    result = _results.get(run_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return result
+
+
+@router.get("/{run_id}/events", response_model=list[RunEvent])
+async def get_run_events(run_id: UUID) -> list[RunEvent]:
+    """List run events."""
+    events = _event_repo.list_by_run(run_id)
+    if not events:
+        raise HTTPException(status_code=404, detail="No events found")
+    return events
+
+
+@router.get("/{run_id}/claims")
+async def get_run_claims(run_id: UUID) -> list[dict]:  # type: ignore[type-arg]
+    """Get claim ledger for a run."""
+    claims = _claim_repo.list_by_run(run_id)
+    if not claims:
+        raise HTTPException(status_code=404, detail="No claims found")
+    return [c.model_dump(mode="json") for c in claims]

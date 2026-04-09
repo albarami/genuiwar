@@ -4,6 +4,10 @@
 .env.*.local
 !.env.example
 
+# ── User data files ──
+data_type.xlsx
+~$*.xlsx
+
 # ── Python ──
 __pycache__/
 *.py[cod]

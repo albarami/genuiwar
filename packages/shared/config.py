@@ -68,6 +68,9 @@ class AppSettings(BaseSettings):
     worker_concurrency: int = 4
     worker_poll_interval_seconds: int = 2
 
+    # ── Agent mode ──
+    agent_mode: str = "deterministic"
+
     # ── Auth ──
     auth_mode: str = "local_dev"
     dev_admin_email: str = "admin@example.com"

@@ -40,12 +40,16 @@ Agent mode is set by explicit `AGENT_MODE` config, not inferred.
 
 ## Event types
 
-From existing contract: run.mode_selected, retrieval.bundle_selected,
+Event names are aligned with `docs/07_run_event_schema.md` and extended
+for Phase 4 where needed.
+
+Aligned with existing contract: run.mode_selected, retrieval.bundle_selected,
 calculation.completed, challenge.missing_evidence_flagged,
 adjudication.claim_rejected, clarification.requested, answer.completed
 
 Phase 4 extensions: run.started, run.completed, analysis.draft_completed,
-analysis.claim_ledger_created, challenge.review_completed, adjudication.completed
+analysis.claim_ledger_created, challenge.review_completed,
+challenge.claim_flagged, adjudication.completed
 
 ## Governance
 

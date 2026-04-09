@@ -171,3 +171,26 @@ class TestContextLoader:
             if f.source_field_name == "EID"
         )
         assert eid_field.semantic_name == "my_custom_meaning"
+
+    def test_user_table_source_enriched_from_metadata(self) -> None:
+        fid = uuid4()
+        user_dict = DatasetContext(
+            tables=[
+                TableContext(
+                    table_name="data.csv",
+                    source=SourceLocator(file_id=fid),
+                )
+            ],
+        )
+        doc = FileDocument(
+            file_id=fid,
+            original_filename="data.csv",
+            file_type=FileType.CSV,
+            file_size_bytes=100,
+            storage_path="/tmp/data.csv",
+            detected_schema={"headers": ["EID", "value"]},
+        )
+        ctx = build_dataset_context([doc], user_data_dictionary=user_dict)
+
+        assert ctx.tables[0].source.file_id == fid
+        assert len(ctx.tables[0].fields) >= 2

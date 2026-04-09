@@ -75,8 +75,8 @@ def build_dataset_context(
             for sheet in doc.sheet_names:
                 name = f"{doc.original_filename}:{sheet}"
                 if name in user_tables:
-                    _enrich_table_fields(
-                        user_tables[name], doc.detected_schema, sheet
+                    _enrich_table(
+                        user_tables[name], doc, sheet, evidence_type
                     )
                     continue
                 fields = _fields_from_schema(doc.detected_schema, sheet)
@@ -94,8 +94,8 @@ def build_dataset_context(
         else:
             name = doc.original_filename
             if name in user_tables:
-                _enrich_table_fields(
-                    user_tables[name], doc.detected_schema, None
+                _enrich_table(
+                    user_tables[name], doc, None, evidence_type
                 )
                 continue
             fields = _fields_from_schema(doc.detected_schema, None)
@@ -123,21 +123,28 @@ def build_dataset_context(
     )
 
 
-def _enrich_table_fields(
+def _enrich_table(
     table: TableContext,
-    detected_schema: dict[str, object] | None,
+    doc: FileDocument,
     sheet_name: str | None,
+    inferred_evidence_type: EvidenceSourceType,
 ) -> None:
-    """Fill missing fields on a user-supplied table from parsed metadata.
+    """Fill missing source, evidence_type, and fields on a user-supplied table.
 
-    Never overrides existing user-defined fields.
+    Never overrides existing user-defined values.
     """
-    if not detected_schema:
-        return
+    if table.source.sheet_name is None and sheet_name:
+        table.source.sheet_name = sheet_name
+
+    if not table.description:
+        label = f":{sheet_name}" if sheet_name else ""
+        table.description = f"From {doc.original_filename}{label}"
+
+    if table.evidence_type == EvidenceSourceType.QUANTITATIVE and not table.fields:
+        table.evidence_type = inferred_evidence_type
 
     existing_names = {f.source_field_name.lower() for f in table.fields}
-    parsed = _fields_from_schema(detected_schema, sheet_name)
-
+    parsed = _fields_from_schema(doc.detected_schema, sheet_name)
     for field in parsed:
         if field.source_field_name.lower() not in existing_names:
             table.fields.append(field)

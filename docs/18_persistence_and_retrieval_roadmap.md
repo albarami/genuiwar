@@ -15,8 +15,8 @@ restart. Postgres is prescribed by `.cursor/rules/00_architecture.mdc`.
 Order follows data dependency (claims reference calculations and evidence):
 
 1. **Calculation results** — claim ledger references `calculation_result_ids`
-2. **Evidence chunks** — claims reference `evidence_refs`
-3. **Evidence bundles** — runs reference bundle IDs
+2. **Evidence bundles** — runs reference bundle IDs
+3. **Evidence chunks** — bundles and claims reference chunk/evidence IDs
 4. **File metadata** — chunks reference file IDs
 5. **Runs and events** — Phase 4 orchestration
 6. **Claim ledger entries** — Phase 4 adjudication

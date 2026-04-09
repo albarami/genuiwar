@@ -199,12 +199,18 @@ Purpose: Document every assumption introduced during Phase 0 scaffold that was n
 | 31 | reportlab as dev dependency for PDF fixtures | Optional (proposal) | Present — needs approval |
 | 32 | Centralized `apps/api/dependencies.py` for repo instances | Required (clean architecture) | Present |
 | 33 | `LocalKeywordRetriever` accepts `ChunkRepository` ABC | Required (storage cleanup) | Present |
-| 34 | `packages/retrieval/store.py` is dead code | Fact | Present — can be deleted |
+| 34 | `packages/retrieval/store.py` was dead code | Fact | **Deleted** |
+| 35 | SQLAlchemy ORM models in packages/storage/models.py | Required (Postgres persistence) | Present |
+| 36 | Postgres repo implementations in packages/storage/postgres.py | Required (Postgres persistence) | Present |
+| 37 | Alembic migration 001_initial_tables | Required (schema management) | Present |
+| 38 | `RETRIEVAL_BACKEND` config selects in-memory vs Postgres | Required (backend selection) | Present |
+| 39 | GIN index on citation_anchor JSONB | Required (retrieval performance) | Present in migration |
+| 40 | alembic.ini at repo root | Required (Alembic convention) | Present |
 
 **Items marked "proposal" require owner approval before they become approved decisions.**
-**Items marked "reverted" are no longer in the codebase.**
+**Items marked "reverted" or "deleted" are no longer in the codebase.**
 
 ---
 
-Status: assumption register (updated Phase 3 second hardening)
+Status: assumption register (updated Phase 3 final hardening)
 Use: transparency record of all non-prescribed choices

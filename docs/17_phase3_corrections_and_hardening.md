@@ -1,61 +1,60 @@
 # GenUIWar — Phase 3 Corrections and Hardening
 
-Updated: 2026-04-09 (second hardening pass)
+Updated: 2026-04-09 (final hardening pass)
 Branch: `feat/phase3-calculations`
 
 ---
 
 ## What was wrong
 
-1. **Units in trace incomplete.** Schema carried `input_units` and `output_unit`, but the engine only appended the output unit to the trace. Input units were never written to trace steps, making traces incomplete for auditing.
-2. **Trace endpoint missing.** `docs/12_api_contract_overview.md` specifies "inspect calculation trace" as a distinct operation. Only execute and get-result existed.
-3. **Storage bypass.** Routes imported the old `chunk_store` global from `packages/retrieval/store.py` directly, bypassing the typed `ChunkRepository` abstraction. The system was half on repositories (calculations, bundles) and half on a raw global (chunks). The `LocalKeywordRetriever` also took `ChunkStore` directly instead of `ChunkRepository`.
+1. **Units in trace incomplete.** Input units were never written to trace steps.
+2. **Trace endpoint missing.** Only execute and get-result existed.
+3. **Storage bypass.** Routes imported a global `chunk_store` directly, bypassing the repository abstraction. The `LocalKeywordRetriever` took the concrete `ChunkStore` class instead of the `ChunkRepository` ABC.
+4. **No Postgres persistence.** All storage was in-memory with no migration path implemented.
+5. **Dead code.** `packages/retrieval/store.py` was superseded but not removed.
 
 ## How units-in-trace was fixed
 
-- Engine now appends `input units: a: SAR, b: SAR` to trace when `input_units` is non-empty
-- Engine appends `output unit: percent` to trace when `output_unit` is present
-- When neither is provided, no unit lines appear in the trace
-- Three new tests verify: input units in trace, output unit in trace, no fake units when absent
-
-## How the trace endpoint was added
-
-- `GET /api/v1/calculations/{calculation_id}/trace` returns `TraceResponse`
-- `TraceResponse` is typed: `calculation_id`, `operation`, `trace`, `output_unit`
-- Tests cover happy path, 404, and unit presence in trace response
+- Engine appends `input units: a: SAR, b: SAR` when `input_units` is non-empty
+- Engine appends `output unit: percent` when `output_unit` is present
+- No unit lines appear when neither is provided
+- Tests verify all three cases
 
 ## How storage abstraction was cleaned up
 
-- Created `apps/api/dependencies.py` — centralized repository instances (`chunk_repo`, `bundle_repo`, `calc_repo`)
-- All routes (`files.py`, `evidence.py`, `calculations.py`) now import from `dependencies.py`
-- `LocalKeywordRetriever` now accepts `ChunkRepository` (the abstract interface) instead of `ChunkStore`
-- No route imports `packages.retrieval.store` or `chunk_store` directly
-- The old `packages/retrieval/store.py` is dead code — nothing imports it
-- Tests updated: `test_chunk_store.py` tests `InMemoryChunkRepository`, `test_keyword_retriever.py` uses `InMemoryChunkRepository`, `test_evidence_bundle.py` uses `InMemoryChunkRepository`, `test_retrieval_api.py` clears via `chunk_repo` from dependencies
+- Created `apps/api/dependencies.py` — centralized repository instances
+- All routes import from `dependencies.py`, not from retrieval internals
+- `LocalKeywordRetriever` accepts `ChunkRepository` ABC
+- `packages/retrieval/store.py` deleted (dead code)
+- Tests use `InMemoryChunkRepository` from `packages/storage`
 
-## What persistence was implemented
+## What Postgres persistence was implemented
 
 **Implemented:**
-- Typed storage ABCs: `ChunkRepository`, `BundleRepository`, `CalculationRepository`
-- In-memory implementations of all three
-- All API routes use the typed repository abstraction
-- Centralized dependency module for repository instantiation
+- SQLAlchemy ORM models: `CalculationResultRow`, `EvidenceChunkRow`, `EvidenceBundleRow`
+- Postgres repository implementations: `PostgresCalculationRepository`, `PostgresChunkRepository`, `PostgresBundleRepository`
+- Database engine/session module: `packages/storage/database.py`
+- Alembic initialized with migration directory
+- Initial migration `001_initial_tables.py` with:
+  - `calculation_results` table
+  - `evidence_chunks` table with B-tree indexes on `file_id` and `content_type`, GIN index on `citation_anchor`
+  - `evidence_bundles` table
+- Repository selection mechanism in `dependencies.py`: reads `RETRIEVAL_BACKEND` config, creates Postgres or in-memory repos
+- Default remains in-memory (`RETRIEVAL_BACKEND=local`)
 
-**Documented only (not yet implemented):**
-- Postgres-backed repositories (see `docs/18_persistence_and_retrieval_roadmap.md`)
-- Full-text search indexing
+**To activate Postgres:**
+1. Run `docker compose up -d` (Postgres on port 5432)
+2. Run `alembic upgrade head`
+3. Set `RETRIEVAL_BACKEND=postgres` in `.env`
+
+## What was intentionally deferred
+
+- Postgres full-text search (`tsvector` column + `ts_query` retriever)
 - pgvector / semantic retrieval
-
-## What was deliberately deferred
-
-- Postgres persistence (abstractions ready, implementation deferred)
-- SQLAlchemy models and Alembic migrations
-- Vector retrieval / pgvector
 - Hybrid retrieval
-- Full retrieval redesign
 - Multi-agent orchestration (Phase 4)
 
 ---
 
-Status: Phase 3 corrections and hardening record (updated)
+Status: Phase 3 corrections and hardening record (final)
 Use: traceability for what was fixed and why

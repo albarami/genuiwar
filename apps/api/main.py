@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from apps.api.routes import health
+from apps.api.routes import files, health
 from packages.shared.config import get_settings
 
 settings = get_settings()
@@ -23,3 +23,4 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix="/api/v1")
+app.include_router(files.router, prefix="/api/v1")

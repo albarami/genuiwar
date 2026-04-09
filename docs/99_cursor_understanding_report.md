@@ -189,14 +189,12 @@ The frontend must render structured events and answer payloads. It must **not** 
 3. **ruff not installed**: The user rules require ruff for Python formatting/linting. Installed via pip as dev dependency.
 4. **No git initialized**: The repository existed as files only, with no version control. Initialized during setup.
 
-### SECURITY INCIDENT — .env was read (now prohibited)
+### SECURITY INCIDENT (now prohibited)
 
-During the initial Phase 0 session, the Cursor agent read the `.env` file contents via shell command.
-This was a mistake. The `.env` file may contain live production secrets and must never be read,
-printed, inspected, summarized, or validated by any automated agent or tool.
+A forbidden local secret-bearing environment file was accessed in an earlier session;
+details are intentionally omitted. This was a security violation now permanently prohibited.
 
-**Rule established**: `.env` is forbidden for agent access. Only `.env.example` is the environment contract.
-This rule is permanent and applies to all future sessions.
+**Rule**: `.env` is forbidden for agent access. Only `.env.example` is the environment contract.
 
 ### Ambiguities
 1. **Worker technology**: The docs specify "worker process for async jobs" but do not prescribe a specific task queue library (Celery, ARQ, custom Redis-based, etc.). Decision needed — see `docs/96_assumption_register.md`.
@@ -206,7 +204,7 @@ This rule is permanent and applies to all future sessions.
 5. **`.env.example` is canonical**: Only `.env.example` is treated as the environment contract. The `.env` file's contents are unknown and irrelevant to the scaffold.
 
 ### Contradictions Found
-- **None significant.** The documentation is internally consistent. The `.cursor/rules/` files, `AGENTS.md`, and `docs/` all reinforce the same principles without conflict. The only tension is between the `.env` file's ad-hoc variable naming and the `.env.example` canonical contract, but `.env.example` is clearly the intended standard.
+- **None significant.** The documentation is internally consistent. The `.cursor/rules/` files, `AGENTS.md`, and `docs/` all reinforce the same principles without conflict.
 
 ---
 
@@ -216,19 +214,19 @@ Added: 2026-04-08 (Correction pass 2)
 
 This section classifies key statements in this report by their epistemic status.
 
-### Proven (verifiable from current repo state)
+### Proven (verifiable from current repo state or command output)
 
-| Statement | Proof |
-|-----------|-------|
-| 99 files exist in commit `52ff936` | `git show --stat 52ff936` |
-| mypy passes strict on 30 source files | `python -m mypy apps packages` output |
-| ruff passes all checks | `python -m ruff check apps/ packages/ tests/` output |
-| 9 schema tests pass | `python -m pytest tests/ -v` output |
-| `.env` is excluded from git | `.gitignore` contains `.env` rule; `git status` confirms |
-| Tailwind is not in the codebase | Removed in correction pass 2; verifiable via `apps/web/package.json` |
-| Phase 1+ parser dependencies are not in `pyproject.toml` | Verifiable via file contents |
-| All 12 packages from `06_repo_structure.md` have directories | Verifiable via filesystem |
-| `apps/api`, `apps/web`, `apps/worker` exist with shell files | Verifiable via filesystem |
+| Statement | Proof method |
+|-----------|-------------|
+| 98 tracked files on current branch | `git ls-files` |
+| mypy passes strict on 30 source files | `python -m mypy apps packages` |
+| ruff passes all checks | `python -m ruff check apps/ packages/ tests/` |
+| 9 schema tests pass | `python -m pytest tests/ -v` |
+| `.env` is excluded from git | `.gitignore` rule + `git ls-files` does not list `.env` |
+| Tailwind is not in the codebase | `apps/web/package.json` does not contain `tailwindcss` |
+| Phase 1+ parser dependencies are not in `pyproject.toml` | `pyproject.toml` file contents |
+| All 12 packages from `06_repo_structure.md` have directories | `git ls-files` |
+| `apps/api`, `apps/web`, `apps/worker` exist with shell files | `git ls-files` |
 
 ### Inferred (based on session knowledge, not independently verifiable from git)
 
@@ -381,8 +379,8 @@ Round 1 grouped files by category. The user needs path-by-path exactness.
 ### What still remained a proposal after Round 2 (not approved)
 
 These items were in the scaffold after Round 2 and required owner approval.
-Note: Tailwind was reverted during Round 2 itself and is not listed here.
-For the full current proposal list, see the Round 3 section below.
+Note: Tailwind was still present after Round 2. It was reverted in Round 3.
+For the full current proposal list, see the final state table at the end.
 
 | Item | Classification | Reference |
 |------|---------------|-----------|
@@ -406,7 +404,7 @@ For the full current proposal list, see the Round 3 section below.
 
 The Phase 0 scaffold is now structurally aligned with the controlling docs after corrections. The repository skeleton, schemas, config, and app shells match `docs/06_repo_structure.md` and `docs/05_build_phases.md`. No Phase 1+ code or dependencies remain. All code passes mypy strict, ruff, and pytest.
 
-However, the scaffold contained several technology proposals (Next.js 15, structlog, etc.) that were not doc-prescribed. Tailwind was reverted during this same pass. The Makefile requires GNU Make. The frontend had not been build-verified. These were honest limitations documented but not yet fully resolved.
+However, the scaffold contained several technology proposals (Next.js 15, structlog, etc.) that were not doc-prescribed. Tailwind was acknowledged as a proposal here but was not yet removed — its actual removal happened in Round 3 below. The Makefile requires GNU Make. The frontend had not been build-verified.
 
 ---
 
@@ -506,16 +504,14 @@ Authorship split stated as inferred, not proven.
 
 ---
 
-### Correction 2 — docs/99 described .env file contents
+### Correction 2 — docs/99 described forbidden file contents
 
 **Severity: Medium**
 
-Two locations in docs/99 described or implied what was inside the `.env` file
-(provider names, key types). This violates the prohibition on describing secret-bearing
-file contents, even retroactively.
+Two locations in docs/99 described or implied the contents of a forbidden
+secret-bearing file. Details are intentionally omitted.
 
-**Corrective action**: Replaced with neutral wording. No provider names, key names,
-or secret categories appear in the document.
+**Corrective action**: Replaced with neutral wording.
 
 ---
 
@@ -524,13 +520,12 @@ or secret categories appear in the document.
 **Severity: Low**
 
 The "What still remains a proposal" table in the Round 2 section included
-"Tailwind CSS v4" as `#2`, even though Tailwind was reverted during that same pass.
-The table was internally contradictory. Register reference numbers (#7, #8, #9)
+"Tailwind CSS v4" as a remaining proposal, even though Tailwind was reverted
+in Round 3 (not Round 2). The table was inconsistent. Register reference numbers
 also did not match current docs/96 numbering.
 
 **Corrective action**: Removed Tailwind from the table. Updated register reference
-numbers to match current docs/96. Added a note clarifying Tailwind was reverted
-during Round 2 itself.
+numbers to match current docs/96. Added a note clarifying the actual timeline.
 
 ---
 
@@ -546,7 +541,9 @@ it having been reverted.
 
 ---
 
-### Final verified state (proven)
+### Final verified state
+
+**Proven (verifiable from repo state or command output):**
 
 | Check | Result |
 |-------|--------|
@@ -557,7 +554,12 @@ it having been reverted.
 | `git branch --show-current` | fix/foundation-correction-2 |
 | Tailwind in codebase | No (verified: not in `apps/web/package.json`) |
 | `.env` in git | No (verified: excluded by `.gitignore`) |
-| `.env` read this session | No |
+
+**Attested (operator statement, not provable from repo state):**
+
+| Statement | Basis |
+|-----------|-------|
+| `.env` was not read during correction passes 2–3 | Session behavior; cannot be verified from repo |
 
 ### Open proposals requiring owner approval (13 items)
 
@@ -583,5 +585,37 @@ None of these are approved. All are documented proposals awaiting owner decision
 
 ---
 
-Status: understanding report + self-critique (4 rounds)
+## Self-Critique — Round 5 (Correction pass 4 — documentation precision only)
+
+Performed: 2026-04-08, correction pass 4.
+Mode: AlMuhasbi documentation-precision review.
+Branch: `fix/foundation-correction-2`
+
+This round touched only docs/99. No code changes.
+
+---
+
+### What was fixed
+
+1. **Security incident section (A)**: Minimized from 5 lines to 3. Removed "read the `.env` file contents via shell command" and "live production secrets." Replaced with "a forbidden local secret-bearing environment file was accessed; details are intentionally omitted."
+2. **Contradictions section (A)**: Removed sentence that implied knowledge of `.env` internal variable naming structure.
+3. **Round 4 Correction 2 meta-description (A)**: Removed mention of "provider names, key types" from the description of what was scrubbed — the meta-description itself was leaking the categories it claimed to have removed.
+4. **Tailwind timeline (B)**: Fixed line 384 from "reverted during Round 2 itself" to "still present after Round 2, reverted in Round 3." Fixed line 409 from "reverted during this same pass" to "acknowledged here, removal in Round 3 below." Fixed Round 4 Correction 3 wording to match.
+5. **Proven vs Inferred table (C)**: Updated "99 files" to "98 tracked files on current branch." Changed proof column from historical descriptions to verification methods. Removed history-mixing from proof statements.
+6. **Round 4 final state table (C)**: Split into "Proven" and "Attested" subsections. Moved `.env` not-read claim from proven to attested with explicit note that it cannot be verified from repo state.
+
+### What was checked and found correct (no change needed)
+
+- docs/96 Tailwind status: already "Reverted (pass 2)" — consistent
+- docs/98 section 0.6: already "Plain CSS only" — consistent
+- docs/99 Proven vs Inferred proposals table: already excludes Tailwind — consistent
+- docs/99 Round 3 Correction 1: correctly states "Round 2 acknowledged it but did not remove it" — consistent with the timeline fix above
+
+### Remaining deficiency acknowledged
+
+This document (docs/99) is now 500+ lines. Accumulated correction rounds have made it long and difficult to navigate. A future cleanup pass could consolidate the Round 1–5 history into a concise summary, but that is out of scope for this correction pass.
+
+---
+
+Status: understanding report + self-critique (5 rounds)
 Use: proof of reading, comprehension, correction discipline, and honest assessment

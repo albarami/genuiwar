@@ -1,14 +1,37 @@
-# GenUIWar — Exact Changed-File List (Phase 0 Foundation)
+# GenUIWar — Foundation File List
 
-Generated: 2026-04-08 (Correction pass)
-Source: `git status --short --untracked-files=all`
+Updated: 2026-04-08 (Correction pass 3)
+Branch: `fix/foundation-correction-2`
 
 ---
 
-## Pre-existing files (authored by the owner, NOT created by Cursor)
+## Purpose
 
-These files existed in the repository before Cursor work began.
-They are untracked in git because git was not initialized until the scaffold session.
+Exact path-by-path list of every file in the Phase 0 foundation scaffold.
+
+## Source
+
+The file list below is **proven** by `git ls-files` on branch `fix/foundation-correction-2`.
+There are exactly **98 tracked files** on this branch.
+
+## Authorship provenance
+
+The entire foundation was committed in a single initial commit (`52ff936` on `main`)
+before any per-file git history existed. A second commit (`895914b` on this branch)
+applied correction pass 2. Because no prior git history distinguishes original authorship,
+the split between owner-authored and Cursor-authored files is **inferred from session
+knowledge**, not proven by git.
+
+This limitation is stated honestly. No false precision is claimed.
+
+---
+
+## All tracked files (98 files, proven by `git ls-files`)
+
+### Owner-authored files (inferred — 22 files)
+
+These files are inferred to have existed on disk before git init and before the
+Cursor scaffold session. This cannot be independently verified from git alone.
 
 ```
 .cursor/rules/00_architecture.mdc
@@ -35,9 +58,11 @@ docs/12_api_contract_overview.md
 docs/13_first_cursor_build_brief.md
 ```
 
-## Files created by Cursor (Phase 0 scaffold)
+### Cursor-authored files (inferred — 76 files)
 
-### Root configuration files
+These files are inferred to have been created by the Cursor scaffold agent.
+
+#### Root configuration
 
 ```
 .gitignore
@@ -49,7 +74,7 @@ docker-compose.yml
 Makefile
 ```
 
-### Documentation created by Cursor
+#### Cursor documentation
 
 ```
 docs/95_exact_changed_file_list.md
@@ -59,7 +84,7 @@ docs/98_initial_execution_plan.md
 docs/99_cursor_understanding_report.md
 ```
 
-### apps/api (FastAPI backend shell)
+#### apps/api
 
 ```
 apps/__init__.py
@@ -71,13 +96,12 @@ apps/api/routes/__init__.py
 apps/api/routes/health.py
 ```
 
-### apps/web (Next.js frontend shell)
+#### apps/web
 
 ```
-apps/web/next.config.ts
 apps/web/next-env.d.ts
+apps/web/next.config.ts
 apps/web/package.json
-apps/web/postcss.config.mjs
 apps/web/README.md
 apps/web/src/app/globals.css
 apps/web/src/app/layout.tsx
@@ -85,7 +109,7 @@ apps/web/src/app/page.tsx
 apps/web/tsconfig.json
 ```
 
-### apps/worker (worker shell)
+#### apps/worker
 
 ```
 apps/worker/__init__.py
@@ -93,7 +117,7 @@ apps/worker/main.py
 apps/worker/README.md
 ```
 
-### packages/schemas (typed domain contracts)
+#### packages/schemas
 
 ```
 packages/__init__.py
@@ -109,7 +133,7 @@ packages/schemas/README.md
 packages/schemas/run.py
 ```
 
-### packages/shared (config + helpers)
+#### packages/shared
 
 ```
 packages/shared/__init__.py
@@ -117,7 +141,7 @@ packages/shared/config.py
 packages/shared/README.md
 ```
 
-### packages (placeholder skeletons)
+#### packages (placeholder skeletons)
 
 ```
 packages/agents/__init__.py
@@ -142,7 +166,7 @@ packages/synthetic_data/__init__.py
 packages/synthetic_data/README.md
 ```
 
-### infra
+#### infra
 
 ```
 infra/deployment/README.md
@@ -151,7 +175,7 @@ infra/docker/README.md
 infra/scripts/README.md
 ```
 
-### tests
+#### tests
 
 ```
 tests/__init__.py
@@ -166,13 +190,5 @@ tests/unit/test_schemas.py
 
 ---
 
-## Total counts
-
-- Pre-existing (owner-authored): 22 files
-- Created by Cursor: 71 files
-- Total untracked: 93 files
-
----
-
-Status: exact changed-file list
+Status: foundation file list (correction pass 3)
 Use: auditability record for Phase 0 scaffold

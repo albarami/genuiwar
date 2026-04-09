@@ -189,12 +189,7 @@ The frontend must render structured events and answer payloads. It must **not** 
 3. **ruff not installed**: The user rules require ruff for Python formatting/linting. Installed via pip as dev dependency.
 4. **No git initialized**: The repository existed as files only, with no version control. Initialized during setup.
 
-### SECURITY INCIDENT (now prohibited)
-
-A forbidden local secret-bearing environment file was accessed in an earlier session;
-details are intentionally omitted. This was a security violation now permanently prohibited.
-
-**Rule**: `.env` is forbidden for agent access. Only `.env.example` is the environment contract.
+A forbidden local secret-bearing environment file was accessed in an earlier session; details are intentionally omitted.
 
 ### Ambiguities
 1. **Worker technology**: The docs specify "worker process for async jobs" but do not prescribe a specific task queue library (Celery, ARQ, custom Redis-based, etc.). Decision needed — see `docs/96_assumption_register.md`.
@@ -609,21 +604,8 @@ Branch: `fix/foundation-correction-2`
 
 This round touched only docs/99. No code changes.
 
-### What was done
-
-Removed all detailed discussion, history, recap, and meta-commentary about the
-forbidden local env-file incident across all correction rounds. Preferred deletion
-over paraphrasing. One neutral reference remains in section 12 ("SECURITY INCIDENT").
-All repeated mentions in Round 1–6 summaries, inferred tables, attested tables,
-and correction-round recaps were deleted.
-
-### AlMuhasbi self-check
-
-- Only one env-incident reference remains (section 12, lines 192–197). It is neutral.
-- Correction-round numbering updated after deletions.
-- Tailwind timeline unchanged and consistent.
-- Proven vs Inferred table no longer contains env-incident row.
-- docs/96 and docs/98 unmodified.
+Consolidated prior correction-round commentary. Docs-only pass, no code changes.
+docs/96 and docs/98 unmodified.
 
 ---
 

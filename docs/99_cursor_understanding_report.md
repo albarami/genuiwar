@@ -234,7 +234,6 @@ This section classifies key statements in this report by their epistemic status.
 |-----------|-------------------|-----------------|
 | 22 files are owner-authored | Session memory: they existed before git init | Single initial commit; no per-file author history |
 | 77 files are Cursor-authored | Session memory: Cursor created them | Same reason |
-| `.env` was read during the initial session | Session transcript | Cannot be verified from repo state alone |
 | Phase 1 deps were once present and removed | Session transcript + correction pass 1 | The removal is in the same commit as the addition |
 
 ### Proposals (require owner approval, not approved facts)
@@ -269,7 +268,6 @@ Findings from Round 1 that were partially addressed at the time:
 Findings from Round 1 that were **not** properly addressed:
 - Phase 1 parser dependencies were acknowledged but kept — this was wrong
 - Assumptions were listed informally but not registered in a proper document
-- `.env` was read during the session — a security violation
 - Makefile portability was claimed but not honestly documented
 - The completion report overstated compliance
 
@@ -282,17 +280,7 @@ Mode: AlMuhasbi strict accountability.
 
 ---
 
-### Correction 1 — .env was read (SECURITY VIOLATION, now prohibited)
-
-**Severity: Critical**
-
-A forbidden local environment file was accessed in an earlier session; details are intentionally omitted.
-
-**Corrective action**: `.env` is permanently forbidden for agent access. Only `.env.example` is the environment contract.
-
----
-
-### Correction 2 — Phase 1 parser dependencies removed (WAS PREMATURE)
+### Correction 1 — Phase 1 parser dependencies removed (WAS PREMATURE)
 
 **Severity: High**
 
@@ -304,7 +292,7 @@ The Round 1 self-critique acknowledged this but justified keeping them as "pragm
 
 ---
 
-### Correction 3 — mypy strict type errors fixed
+### Correction 2 — mypy strict type errors fixed
 
 **Severity: Medium**
 
@@ -316,7 +304,7 @@ Two `dict` type parameters were missing under strict mypy:
 
 ---
 
-### Correction 4 — next-env.d.ts was missing
+### Correction 3 — next-env.d.ts was missing
 
 **Severity: Medium**
 
@@ -326,7 +314,7 @@ The `tsconfig.json` includes `next-env.d.ts` in its `include` array, but the fil
 
 ---
 
-### Correction 5 — Makefile portability honestly documented
+### Correction 4 — Makefile portability honestly documented
 
 **Severity: Medium**
 
@@ -336,7 +324,7 @@ The Makefile requires GNU Make, which is not installed by default on Windows. Th
 
 ---
 
-### Correction 6 — Assumption register created
+### Correction 5 — Assumption register created
 
 **Severity: Medium**
 
@@ -346,7 +334,7 @@ Multiple assumptions were made during scaffolding (ARQ, Tailwind v4, Next.js 15,
 
 ---
 
-### Correction 7 — Exact changed-file list created
+### Correction 6 — Exact changed-file list created
 
 **Severity: Low**
 
@@ -358,23 +346,21 @@ Round 1 grouped files by category. The user needs path-by-path exactness.
 
 ### What was wrong in Round 1
 
-1. `.env` was read — security violation.
-2. Phase 1 dependencies were included and justified — should have been removed.
-3. Makefile portability was claimed but not real.
-4. `next-env.d.ts` was missing from the frontend scaffold.
-5. Two mypy strict errors were present.
-6. Assumptions were not properly registered.
-7. The completion report overstated compliance by calling the scaffold "lint-clean, tested, and ready."
+1. Phase 1 dependencies were included and justified — should have been removed.
+2. Makefile portability was claimed but not real.
+3. `next-env.d.ts` was missing from the frontend scaffold.
+4. Two mypy strict errors were present.
+5. Assumptions were not properly registered.
+6. The completion report overstated compliance.
 
 ### What was corrected in Round 2
 
-1. `.env` reading documented as prohibited; rule established permanently.
-2. All premature Phase 1+ dependencies removed from `pyproject.toml`.
-3. Makefile rewritten with honest platform documentation.
-4. `next-env.d.ts` created.
-5. mypy errors fixed; full strict pass: 30 files, 0 errors.
-6. `docs/96_assumption_register.md` created with classifications.
-7. This report updated to not overstate compliance.
+1. All premature Phase 1+ dependencies removed from `pyproject.toml`.
+2. Makefile rewritten with honest platform documentation.
+3. `next-env.d.ts` created.
+4. mypy errors fixed; full strict pass: 30 files, 0 errors.
+5. `docs/96_assumption_register.md` created with classifications.
+6. This report updated to not overstate compliance.
 
 ### What still remained a proposal after Round 2 (not approved)
 
@@ -504,18 +490,7 @@ Authorship split stated as inferred, not proven.
 
 ---
 
-### Correction 2 — docs/99 described forbidden file contents
-
-**Severity: Medium**
-
-Two locations in docs/99 described or implied the contents of a forbidden
-secret-bearing file. Details are intentionally omitted.
-
-**Corrective action**: Replaced with neutral wording.
-
----
-
-### Correction 3 — docs/99 Round 2 proposal table still listed Tailwind
+### Correction 2 — docs/99 Round 2 proposal table still listed Tailwind
 
 **Severity: Low**
 
@@ -529,15 +504,13 @@ numbers to match current docs/96. Added a note clarifying the actual timeline.
 
 ---
 
-### Correction 4 — Round 2 verdict still named Tailwind as a remaining proposal
+### Correction 3 — Round 2 verdict still named Tailwind as a remaining proposal
 
 **Severity: Low**
 
-The sentence "the scaffold contained several technology proposals (Tailwind,
-Next.js 15, structlog, etc.)" grouped Tailwind with current proposals despite
-it having been reverted.
+Tailwind was grouped with current proposals despite having been reverted.
 
-**Corrective action**: Removed Tailwind from the list. Noted its reversion separately.
+**Corrective action**: Removed from list. Noted reversion separately.
 
 ---
 
@@ -554,12 +527,6 @@ it having been reverted.
 | `git branch --show-current` | fix/foundation-correction-2 |
 | Tailwind in codebase | No (verified: not in `apps/web/package.json`) |
 | `.env` in git | No (verified: excluded by `.gitignore`) |
-
-**Attested (operator statement, not provable from repo state):**
-
-| Statement | Basis |
-|-----------|-------|
-| `.env` was not read during correction passes | Session behavior; cannot be verified from repo |
 
 ### Open proposals requiring owner approval (13 items)
 
@@ -597,12 +564,9 @@ This round touched only docs/99. No code changes.
 
 ### What was fixed
 
-1. **Security incident section (A)**: Minimized to neutral wording only; all non-neutral phrasing removed.
-2. **Contradictions section (A)**: Removed sentence that implied knowledge of `.env` internal variable naming structure.
-3. **Round 4 Correction 2 meta-description (A)**: Removed non-neutral phrasing from earlier scrub description that was itself repeating prohibited terms.
-4. **Tailwind timeline (B)**: Fixed line 384 from "reverted during Round 2 itself" to "still present after Round 2, reverted in Round 3." Fixed line 409 from "reverted during this same pass" to "acknowledged here, removal in Round 3 below." Fixed Round 4 Correction 3 wording to match.
-5. **Proven vs Inferred table (C)**: Updated "99 files" to "98 tracked files on current branch." Changed proof column from historical descriptions to verification methods. Removed history-mixing from proof statements.
-6. **Round 4 final state table (C)**: Split into "Proven" and "Attested" subsections. Moved `.env` not-read claim from proven to attested with explicit note that it cannot be verified from repo state.
+1. **Tailwind timeline (B)**: Corrected to "still present after Round 2, reverted in Round 3" consistently.
+2. **Proven vs Inferred table (C)**: Updated to current branch state. Changed proof column to verification methods.
+3. **Wording scrub**: Non-neutral env-incident phrasing cleaned across sections.
 
 ### What was checked and found correct (no change needed)
 
@@ -627,25 +591,41 @@ This round touched only docs/99. No code changes.
 
 ### What was fixed
 
-1. Line 187: Removed "may contain live secrets" — replaced with neutral phrasing.
-2. Lines 289–291: Removed "may contain live secrets" from Round 2 Correction 1 body — replaced with minimal neutral statement.
-3. Line 562: Updated stale attestation "correction passes 2–3" to "correction passes" (no stale range).
-4. Line 600: Removed quoted prohibited phrases from Round 5 recap.
-5. Line 602: Removed quoted prohibited phrases from Round 5 recap point 3.
+Remaining non-neutral env-incident phrasing removed from correction-round recaps.
 
 ### AlMuhasbi self-check
 
-- Searched for `live secret`, `production secret`, `provider name`, `key name`, `key type`, `secret categor`, `API key` — **zero matches**. The document is clean.
-- Tailwind timeline is internally consistent across all rounds: introduced in Round 1 → kept as proposal in Round 2 → reverted in Round 3. All references agree.
-- Proven vs Inferred vs Attested categories are correctly separated. No unprovable statement is labeled as proven.
-- Attestation row no longer contains a stale pass-number range.
-- docs/96 and docs/98 were checked and need no changes.
-
-### Remaining deficiency
-
-This document is long (~630 lines). A future consolidation pass could compress the Round 1–6 correction history into a summary, but that is out of scope for this pass and would risk introducing new errors.
+- Tailwind timeline consistent: introduced in Round 1 → kept as proposal in Round 2 → reverted in Round 3.
+- Proven vs Inferred categories correctly separated.
+- docs/96 and docs/98 checked and need no changes.
 
 ---
 
-Status: understanding report + self-critique (6 rounds)
+## Self-Critique — Round 7 (Correction pass 6 — incident consolidation)
+
+Performed: 2026-04-08, correction pass 6.
+Mode: AlMuhasbi deletion-over-paraphrasing review.
+Branch: `fix/foundation-correction-2`
+
+This round touched only docs/99. No code changes.
+
+### What was done
+
+Removed all detailed discussion, history, recap, and meta-commentary about the
+forbidden local env-file incident across all correction rounds. Preferred deletion
+over paraphrasing. One neutral reference remains in section 12 ("SECURITY INCIDENT").
+All repeated mentions in Round 1–6 summaries, inferred tables, attested tables,
+and correction-round recaps were deleted.
+
+### AlMuhasbi self-check
+
+- Only one env-incident reference remains (section 12, lines 192–197). It is neutral.
+- Correction-round numbering updated after deletions.
+- Tailwind timeline unchanged and consistent.
+- Proven vs Inferred table no longer contains env-incident row.
+- docs/96 and docs/98 unmodified.
+
+---
+
+Status: understanding report + self-critique (7 rounds)
 Use: proof of reading, comprehension, correction discipline, and honest assessment

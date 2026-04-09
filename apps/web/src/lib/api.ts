@@ -3,6 +3,7 @@
 import type {
   CalculationResult,
   ClaimLedgerEntry,
+  EvidenceBundle,
   EvidenceChunk,
   FileUploadResponse,
   RunEvent,
@@ -19,6 +20,12 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
     throw new Error(`API error ${res.status}: ${await res.text()}`);
   }
   return res.json() as Promise<T>;
+}
+
+// ── Health ──
+
+export async function healthCheck(): Promise<{ status: string; service: string }> {
+  return fetchJSON<{ status: string; service: string }>(`${BASE_URL}/health`);
 }
 
 // ── Files ──
@@ -79,14 +86,8 @@ export async function getChunksForFile(
   return fetchJSON<EvidenceChunk[]>(`${BASE_URL}/evidence/chunks/${fileId}`);
 }
 
-interface RetrieveResponse {
-  bundle: {
-    bundle_id: string;
-    query: string;
-    chunks: EvidenceChunk[];
-    file_ids: string[];
-    total_candidates: number;
-  };
+export interface RetrieveResponse {
+  bundle: EvidenceBundle;
   chunk_count: number;
 }
 
@@ -101,11 +102,33 @@ export async function retrieveEvidence(
   });
 }
 
-export async function getBundle(bundleId: string) {
-  return fetchJSON(`${BASE_URL}/evidence/bundle/${bundleId}`);
+export async function getBundle(bundleId: string): Promise<EvidenceBundle> {
+  return fetchJSON<EvidenceBundle>(`${BASE_URL}/evidence/bundle/${bundleId}`);
 }
 
 // ── Calculations ──
+
+export async function executeCalculation(
+  operation: string,
+  inputs: Record<string, unknown>,
+  options?: {
+    inputUnits?: Record<string, string>;
+    outputUnit?: string;
+    evidenceRefs?: string[];
+  }
+): Promise<CalculationResult> {
+  return fetchJSON<CalculationResult>(`${BASE_URL}/calculations/execute`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      operation,
+      inputs,
+      input_units: options?.inputUnits ?? {},
+      output_unit: options?.outputUnit ?? null,
+      evidence_refs: options?.evidenceRefs ?? [],
+    }),
+  });
+}
 
 export async function getCalculation(
   calcId: string

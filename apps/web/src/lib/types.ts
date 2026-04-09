@@ -35,9 +35,12 @@ export type AnswerBlockType =
 export interface Run {
   run_id: string;
   conversation_id: string;
+  trigger_message_id: string | null;
+  parent_run_id: string | null;
   run_category: string;
   run_mode: RunMode;
   status: RunStatus;
+  scope: string | null;
   question: string | null;
   decision_reason: string | null;
   created_at: string;
@@ -75,6 +78,15 @@ export interface EvidenceChunk {
   content_type: string;
   citation_anchor: CitationAnchor;
   metadata: Record<string, string>;
+  created_at: string;
+}
+
+export interface EvidenceBundle {
+  bundle_id: string;
+  query: string;
+  chunks: EvidenceChunk[];
+  file_ids: string[];
+  total_candidates: number;
   created_at: string;
 }
 
@@ -120,6 +132,9 @@ export interface ClarificationRequest {
   question: string;
   reason: string;
   options: string[];
+  response: string | null;
+  responded_at: string | null;
+  created_at: string;
 }
 
 export interface RunResult {

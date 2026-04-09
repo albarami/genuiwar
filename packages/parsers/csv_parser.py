@@ -19,15 +19,24 @@ class CsvParser(BaseParser):
 
     def parse(self, file_path: Path, file_doc: FileDocument) -> ParseResult:
         """Parse a CSV file into evidence chunks."""
-        try:
-            text = file_path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
+        raw = file_path.read_bytes()
+        text: str | None = None
+        for enc in ("utf-8", "latin-1"):
             try:
-                text = file_path.read_text(encoding="latin-1")
-            except Exception as exc:
-                raise ParseError(str(file_path), f"Cannot decode CSV: {exc}") from exc
-        except Exception as exc:
-            raise ParseError(str(file_path), f"Cannot read CSV: {exc}") from exc
+                text = raw.decode(enc)
+                break
+            except (UnicodeDecodeError, ValueError):
+                continue
+        if text is None:
+            raise ParseError(str(file_path), "Cannot decode CSV as text")
+
+        sample = raw[:1024]
+        nul_count = sample.count(b"\x00")
+        printable = sum(
+            1 for b in sample if 0x20 <= b <= 0x7E or b in (0x09, 0x0A, 0x0D)
+        )
+        if nul_count > 0 or (len(sample) > 0 and printable / len(sample) < 0.5):
+            raise ParseError(str(file_path), "File appears to be binary, not CSV")
 
         if not text.strip():
             return ParseResult(warnings=["CSV file is empty"])

@@ -11,11 +11,6 @@ from fastapi import APIRouter, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from packages.parsers import ParseError, get_parser
-from packages.parsers.csv_parser import CsvParser  # noqa: F401 — trigger registration
-from packages.parsers.docx_parser import DocxParser  # noqa: F401
-from packages.parsers.pdf_parser import PdfParser  # noqa: F401
-from packages.parsers.pptx_parser import PptxParser  # noqa: F401
-from packages.parsers.xlsx_parser import XlsxParser  # noqa: F401
 from packages.schemas.document import FileDocument
 from packages.schemas.enums import FileType
 from packages.shared.config import get_settings
@@ -83,6 +78,18 @@ async def upload_file(file: UploadFile) -> FileUploadResponse:
         result = parser.parse(save_path, file_doc)
     except ParseError as exc:
         raise HTTPException(status_code=422, detail=f"Parse error: {exc.reason}") from exc
+
+    page_count_val = result.metadata.get("page_count")
+    if page_count_val is not None:
+        file_doc.page_count = int(str(page_count_val))
+
+    sheet_names_val = result.metadata.get("sheet_names")
+    if isinstance(sheet_names_val, list):
+        file_doc.sheet_names = [str(s) for s in sheet_names_val]
+
+    headers_val = result.metadata.get("headers")
+    if headers_val is not None:
+        file_doc.detected_schema = {"headers": headers_val}
 
     response = FileUploadResponse(
         file_document=file_doc,

@@ -52,6 +52,9 @@ class PptxParser(BaseParser):
 
         return ParseResult(
             chunks=chunks,
-            metadata={"slide_count": len(prs.slides)},
+            metadata={
+                "slide_count": len(prs.slides),
+                "page_count": len(prs.slides),
+            },
             warnings=warnings,
         )

@@ -65,3 +65,15 @@ class TestDocxParser:
         parser = DocxParser()
         with pytest.raises(ParseError):
             parser.parse(bad_file, doc)
+
+    def test_messy_docx_schema_variation(
+        self, fixtures_dir: Path
+    ) -> None:
+        """Messy DOCX with no headings still parses without error."""
+        path = fixtures_dir / "messy_report.docx"
+        parser = DocxParser()
+        result = parser.parse(path, _make_doc(path))
+
+        assert len(result.chunks) >= 1
+        for chunk in result.chunks:
+            assert chunk.citation_anchor.section == "Document Start"

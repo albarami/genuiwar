@@ -88,3 +88,50 @@ class TestFileUpload:
             "/api/v1/files/00000000-0000-0000-0000-000000000000"
         )
         assert resp.status_code == 404
+
+    async def test_upload_xlsx_populates_sheet_names(
+        self, client: AsyncClient, fixtures_dir: Path
+    ) -> None:
+        xlsx_path = fixtures_dir / "clean_budget.xlsx"
+        with open(xlsx_path, "rb") as f:
+            resp = await client.post(
+                "/api/v1/files/upload",
+                files={"file": (
+                    "clean_budget.xlsx",
+                    f,
+                    "application/vnd.openxmlformats-officedocument"
+                    ".spreadsheetml.sheet",
+                )},
+            )
+        assert resp.status_code == 200
+        doc = resp.json()["file_document"]
+        assert doc["sheet_names"] is not None
+        assert "Headcount" in doc["sheet_names"]
+
+    async def test_upload_pdf_populates_page_count(
+        self, client: AsyncClient, fixtures_dir: Path
+    ) -> None:
+        pdf_path = fixtures_dir / "clean_memo.pdf"
+        with open(pdf_path, "rb") as f:
+            resp = await client.post(
+                "/api/v1/files/upload",
+                files={"file": ("clean_memo.pdf", f, "application/pdf")},
+            )
+        assert resp.status_code == 200
+        doc = resp.json()["file_document"]
+        assert doc["page_count"] is not None
+        assert doc["page_count"] >= 2
+
+    async def test_upload_csv_populates_detected_schema(
+        self, client: AsyncClient, fixtures_dir: Path
+    ) -> None:
+        csv_path = fixtures_dir / "clean_data.csv"
+        with open(csv_path, "rb") as f:
+            resp = await client.post(
+                "/api/v1/files/upload",
+                files={"file": ("clean_data.csv", f, "text/csv")},
+            )
+        assert resp.status_code == 200
+        doc = resp.json()["file_document"]
+        assert doc["detected_schema"] is not None
+        assert "headers" in doc["detected_schema"]

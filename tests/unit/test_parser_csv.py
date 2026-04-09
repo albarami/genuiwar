@@ -3,6 +3,8 @@
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
+
 from packages.parsers.csv_parser import CsvParser
 from packages.schemas.document import FileDocument
 from packages.schemas.enums import FileType
@@ -67,3 +69,23 @@ class TestCsvParser:
         parser = CsvParser()
         result = parser.parse(tsv, doc)
         assert len(result.chunks) >= 1
+
+    def test_malformed_binary_file_raises_parse_error(
+        self, tmp_path: Path
+    ) -> None:
+        bad = tmp_path / "corrupt.csv"
+        bad.write_bytes(b"\x80\x81\x82\x83" * 100)
+
+        from packages.parsers.base import ParseError
+
+        doc = FileDocument(
+            file_id=uuid4(),
+            original_filename="corrupt.csv",
+            file_type=FileType.CSV,
+            file_size_bytes=bad.stat().st_size,
+            storage_path=str(bad),
+        )
+
+        parser = CsvParser()
+        with pytest.raises(ParseError):
+            parser.parse(bad, doc)

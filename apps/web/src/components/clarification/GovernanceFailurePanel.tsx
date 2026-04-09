@@ -19,18 +19,23 @@ export function GovernanceFailurePanel({ events, status }: Props) {
       </h4>
       {violations.length > 0 ? (
         <ul className="space-y-2">
-          {violations.map((v) => (
-            <li key={v.event_id} className="text-sm text-red-800">
-              <span className="font-medium">{v.title}</span>
-              {v.payload?.violations && Array.isArray(v.payload.violations) && (
-                <ul className="mt-1 ml-4 list-disc text-xs text-red-600">
-                  {(v.payload.violations as string[]).map((msg, i) => (
-                    <li key={i}>{msg}</li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
+          {violations.map((v) => {
+            const msgs = Array.isArray(v.payload?.violations)
+              ? (v.payload.violations as string[])
+              : [];
+            return (
+              <li key={v.event_id} className="text-sm text-red-800">
+                <span className="font-medium">{v.title}</span>
+                {msgs.length > 0 && (
+                  <ul className="mt-1 ml-4 list-disc text-xs text-red-600">
+                    {msgs.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="text-sm text-red-700">

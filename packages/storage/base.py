@@ -27,6 +27,10 @@ class ChunkRepository(ABC):
         """Return chunks belonging to a specific file."""
 
     @abstractmethod
+    def get_by_id(self, chunk_id: UUID) -> EvidenceChunk | None:
+        """Return a single chunk by its ID, or None if not found."""
+
+    @abstractmethod
     def count(self) -> int:
         """Total number of stored chunks."""
 

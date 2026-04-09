@@ -35,6 +35,9 @@ class InMemoryChunkRepository(ChunkRepository):
     def get_all(self) -> list[EvidenceChunk]:
         return list(self._chunks)
 
+    def get_by_id(self, chunk_id: UUID) -> EvidenceChunk | None:
+        return next((c for c in self._chunks if c.chunk_id == chunk_id), None)
+
     def get_by_file(self, file_id: UUID) -> list[EvidenceChunk]:
         return list(self._by_file.get(file_id, []))
 

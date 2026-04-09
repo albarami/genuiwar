@@ -92,6 +92,13 @@ class PostgresChunkRepository(ChunkRepository):
             rows = session.query(EvidenceChunkRow).all()
             return [self._to_domain(r) for r in rows]
 
+    def get_by_id(self, chunk_id: UUID) -> EvidenceChunk | None:
+        with self._session_factory() as session:
+            row = session.get(EvidenceChunkRow, chunk_id)
+            if row is None:
+                return None
+            return self._to_domain(row)
+
     def get_by_file(self, file_id: UUID) -> list[EvidenceChunk]:
         with self._session_factory() as session:
             rows = (

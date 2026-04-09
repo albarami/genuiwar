@@ -66,6 +66,18 @@ async def get_bundle(bundle_id: UUID) -> EvidenceBundle:
 
 
 @router.get(
+    "/chunk/{chunk_id}",
+    response_model=EvidenceChunk,
+)
+async def get_chunk_by_id(chunk_id: UUID) -> EvidenceChunk:
+    """Return a single evidence chunk by its ID."""
+    chunk = chunk_repo.get_by_id(chunk_id)
+    if chunk is None:
+        raise HTTPException(status_code=404, detail="Chunk not found")
+    return chunk
+
+
+@router.get(
     "/chunks/{file_id}",
     response_model=list[EvidenceChunk],
 )

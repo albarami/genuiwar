@@ -12,10 +12,11 @@ from packages.retrieval.local import LocalKeywordRetriever
 from packages.retrieval.store import chunk_store
 from packages.schemas.evidence import EvidenceBundle, EvidenceChunk
 from packages.shared.config import get_settings
+from packages.storage import InMemoryBundleRepository
 
 router = APIRouter(prefix="/evidence", tags=["evidence"])
 
-_bundle_store: dict[UUID, EvidenceBundle] = {}
+_bundle_repo = InMemoryBundleRepository()
 
 
 class RetrieveRequest(BaseModel):
@@ -47,7 +48,7 @@ async def retrieve_evidence(req: RetrieveRequest) -> RetrieveResponse:
         filters=req.filters,
     )
 
-    _bundle_store[bundle.bundle_id] = bundle
+    _bundle_repo.save(bundle)
 
     return RetrieveResponse(
         bundle=bundle,
@@ -61,7 +62,7 @@ async def retrieve_evidence(req: RetrieveRequest) -> RetrieveResponse:
 )
 async def get_bundle(bundle_id: UUID) -> EvidenceBundle:
     """Retrieve a previously created evidence bundle by ID."""
-    bundle = _bundle_store.get(bundle_id)
+    bundle = _bundle_repo.get(bundle_id)
     if bundle is None:
         raise HTTPException(status_code=404, detail="Bundle not found")
     return bundle

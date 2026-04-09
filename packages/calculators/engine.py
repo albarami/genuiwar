@@ -16,14 +16,25 @@ from packages.calculators.operations import (
 )
 from packages.schemas.calculation import CalculationResult
 
+_INFERRED_UNITS: dict[str, str] = {
+    "percentage_change": "percent",
+}
+
 
 class CalcRequest(BaseModel):
     """Request to execute a trusted calculation."""
 
     operation: str
     inputs: dict[str, Any]
+    input_units: dict[str, str] = Field(default_factory=dict)
+    output_unit: str | None = None
     evidence_refs: list[UUID] = Field(default_factory=list)
     run_id: UUID | None = None
+
+
+def _infer_output_unit(operation: str) -> str | None:
+    """Return a default output unit for operations where it is unambiguous."""
+    return _INFERRED_UNITS.get(operation)
 
 
 class CalculationEngine:
@@ -76,11 +87,18 @@ class CalculationEngine:
         else:
             raise CalculationError(op, f"Unknown operation: {op}")
 
+        output_unit = request.output_unit or _infer_output_unit(op)
+
+        if output_unit:
+            trace.append(f"output unit: {output_unit}")
+
         return CalculationResult(
             run_id=run_id,
             operation=op,
             inputs=inputs,
             result=result_val,
             trace=trace,
+            input_units=request.input_units,
+            output_unit=output_unit,
             evidence_refs=request.evidence_refs,
         )

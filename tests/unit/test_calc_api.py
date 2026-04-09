@@ -95,3 +95,48 @@ class TestCalcAPI:
             "/api/v1/calculations/00000000-0000-0000-0000-000000000000"
         )
         assert resp.status_code == 404
+
+    async def test_get_trace(self, client: AsyncClient) -> None:
+        exec_resp = await client.post(
+            "/api/v1/calculations/execute",
+            json={
+                "operation": "percentage_change",
+                "inputs": {"old": 100, "new": 130},
+            },
+        )
+        calc_id = exec_resp.json()["calculation_id"]
+
+        resp = await client.get(
+            f"/api/v1/calculations/{calc_id}/trace"
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["calculation_id"] == calc_id
+        assert data["operation"] == "percentage_change"
+        assert len(data["trace"]) >= 2
+        assert data["output_unit"] == "percent"
+
+    async def test_get_trace_not_found(
+        self, client: AsyncClient
+    ) -> None:
+        resp = await client.get(
+            "/api/v1/calculations/00000000-0000-0000-0000-000000000000/trace"
+        )
+        assert resp.status_code == 404
+
+    async def test_execute_with_units(
+        self, client: AsyncClient
+    ) -> None:
+        resp = await client.post(
+            "/api/v1/calculations/execute",
+            json={
+                "operation": "add",
+                "inputs": {"a": 100, "b": 50},
+                "input_units": {"a": "SAR", "b": "SAR"},
+                "output_unit": "SAR",
+            },
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["input_units"] == {"a": "SAR", "b": "SAR"}
+        assert data["output_unit"] == "SAR"

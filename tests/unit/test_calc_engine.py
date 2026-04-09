@@ -120,3 +120,53 @@ class TestCalculationEngine:
             engine.execute(
                 CalcRequest(operation="add", inputs={"a": 1})
             )
+
+    def test_percentage_change_has_percent_unit(self) -> None:
+        engine = CalculationEngine()
+        result = engine.execute(
+            CalcRequest(
+                operation="percentage_change",
+                inputs={"old": 100, "new": 120},
+            )
+        )
+        assert result.output_unit == "percent"
+
+    def test_explicit_output_unit_overrides_inferred(self) -> None:
+        engine = CalculationEngine()
+        result = engine.execute(
+            CalcRequest(
+                operation="add",
+                inputs={"a": 10, "b": 5},
+                output_unit="SAR",
+            )
+        )
+        assert result.output_unit == "SAR"
+        assert any("SAR" in step for step in result.trace)
+
+    def test_input_units_preserved(self) -> None:
+        engine = CalculationEngine()
+        result = engine.execute(
+            CalcRequest(
+                operation="add",
+                inputs={"a": 10, "b": 5},
+                input_units={"a": "SAR", "b": "SAR"},
+            )
+        )
+        assert result.input_units == {"a": "SAR", "b": "SAR"}
+
+    def test_no_unit_when_not_applicable(self) -> None:
+        engine = CalculationEngine()
+        result = engine.execute(
+            CalcRequest(operation="compare", inputs={"a": 10, "b": 5})
+        )
+        assert result.output_unit is None
+
+    def test_unit_appears_in_trace(self) -> None:
+        engine = CalculationEngine()
+        result = engine.execute(
+            CalcRequest(
+                operation="percentage_change",
+                inputs={"old": 50, "new": 75},
+            )
+        )
+        assert any("percent" in step for step in result.trace)

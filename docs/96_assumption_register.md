@@ -190,11 +190,18 @@ Purpose: Document every assumption introduced during Phase 0 scaffold that was n
 | 22 | httpx (main dep) | Premature | Reverted (kept dev) |
 | 23 | python-multipart | Premature | Reverted |
 | 24 | PostCSS | Premature (Tailwind dep) | **Reverted (pass 2)** |
+| 25 | `input_units` / `output_unit` on CalculationResult | Required (Phase 3 fix) | Present |
+| 26 | Auto-inferred `percent` unit for percentage_change | Optional (proposal) | Present — needs approval |
+| 27 | Storage ABCs in packages/storage/base.py | Required (persistence design) | Present |
+| 28 | In-memory repository implementations | Temporary | Present — Postgres migration deferred |
+| 29 | Request-scoped UUID as run_id for standalone calcs | Temporary | Present — until orchestration |
+| 30 | pgvector recommended for future vector retrieval | Optional (proposal) | Documented only |
+| 31 | reportlab as dev dependency for PDF fixtures | Optional (proposal) | Present — needs approval |
 
 **Items marked "proposal" require owner approval before they become approved decisions.**
 **Items marked "reverted" are no longer in the codebase.**
 
 ---
 
-Status: assumption register (complete)
+Status: assumption register (updated Phase 3 hardening)
 Use: transparency record of all non-prescribed choices

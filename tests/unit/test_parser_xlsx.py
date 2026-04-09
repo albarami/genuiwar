@@ -29,16 +29,15 @@ class TestXlsxParser:
         assert len(result.chunks) >= 2
         assert result.warnings == []
 
-    def test_clean_xlsx_has_sheet_names_in_metadata(self, fixtures_dir: Path) -> None:
+    def test_clean_xlsx_normalizes_document(self, fixtures_dir: Path) -> None:
         path = fixtures_dir / "clean_budget.xlsx"
         parser = XlsxParser()
         result = parser.parse(path, _make_doc(path))
 
-        assert "sheet_names" in result.metadata
-        names = result.metadata["sheet_names"]
-        assert isinstance(names, list)
-        assert "Headcount" in names
-        assert "Budget" in names
+        assert result.document.sheet_names is not None
+        assert "Headcount" in result.document.sheet_names
+        assert "Budget" in result.document.sheet_names
+        assert result.document.detected_schema is not None
 
     def test_clean_xlsx_citation_anchors_have_sheet_and_rows(self, fixtures_dir: Path) -> None:
         path = fixtures_dir / "clean_budget.xlsx"

@@ -70,11 +70,6 @@ class DocxParser(BaseParser):
         if not chunks:
             warnings.append("DOCX file produced no content chunks")
 
-        return ParseResult(
-            chunks=chunks,
-            metadata={
-                "paragraph_count": len(document.paragraphs),
-                "table_count": len(document.tables),
-            },
-            warnings=warnings,
-        )
+        file_doc.page_count = len(document.paragraphs)
+
+        return ParseResult(document=file_doc, chunks=chunks, warnings=warnings)

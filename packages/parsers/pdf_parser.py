@@ -63,14 +63,12 @@ class PdfParser(BaseParser):
                                 },
                             )
                         )
+
+            file_doc.page_count = len(pdf.pages)
         finally:
             pdf.close()
 
         if not chunks:
             warnings.append("PDF file produced no content chunks")
 
-        return ParseResult(
-            chunks=chunks,
-            metadata={"page_count": len(pdf.pages)},
-            warnings=warnings,
-        )
+        return ParseResult(document=file_doc, chunks=chunks, warnings=warnings)

@@ -41,7 +41,8 @@ class FileUploadResponse(BaseModel):
 async def upload_file(file: UploadFile) -> FileUploadResponse:
     """Upload a file, validate its type, save it, and parse it.
 
-    Returns the FileDocument metadata plus parse results summary.
+    Returns the normalized FileDocument (populated by the parser)
+    plus parse results summary.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is required")
@@ -51,7 +52,10 @@ async def upload_file(file: UploadFile) -> FileUploadResponse:
     if file_type is None:
         raise HTTPException(
             status_code=422,
-            detail=f"Unsupported file type: {suffix}. Allowed: {list(_ALLOWED_EXTENSIONS.keys())}",
+            detail=(
+                f"Unsupported file type: {suffix}. "
+                f"Allowed: {list(_ALLOWED_EXTENSIONS.keys())}"
+            ),
         )
 
     settings = get_settings()
@@ -77,27 +81,23 @@ async def upload_file(file: UploadFile) -> FileUploadResponse:
         parser = get_parser(file_type)
         result = parser.parse(save_path, file_doc)
     except ParseError as exc:
-        raise HTTPException(status_code=422, detail=f"Parse error: {exc.reason}") from exc
+        raise HTTPException(
+            status_code=422, detail=f"Parse error: {exc.reason}"
+        ) from exc
 
-    page_count_val = result.metadata.get("page_count")
-    if page_count_val is not None:
-        file_doc.page_count = int(str(page_count_val))
-
-    sheet_names_val = result.metadata.get("sheet_names")
-    if isinstance(sheet_names_val, list):
-        file_doc.sheet_names = [str(s) for s in sheet_names_val]
-
-    headers_val = result.metadata.get("headers")
-    if headers_val is not None:
-        file_doc.detected_schema = {"headers": headers_val}
+    normalized_doc = result.document
 
     response = FileUploadResponse(
-        file_document=file_doc,
+        file_document=normalized_doc,
         chunk_count=len(result.chunks),
         parse_warnings=result.warnings,
-        metadata=result.metadata,
+        metadata={
+            "page_count": normalized_doc.page_count,
+            "sheet_names": normalized_doc.sheet_names,
+            "detected_schema": normalized_doc.detected_schema,
+        },
     )
-    _file_store[file_doc.file_id] = response
+    _file_store[normalized_doc.file_id] = response
     return response
 
 

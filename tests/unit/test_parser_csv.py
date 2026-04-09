@@ -28,13 +28,13 @@ class TestCsvParser:
         assert len(result.chunks) >= 1
         assert result.warnings == []
 
-    def test_clean_csv_has_headers_in_metadata(self, fixtures_dir: Path) -> None:
+    def test_clean_csv_normalizes_document(self, fixtures_dir: Path) -> None:
         path = fixtures_dir / "clean_data.csv"
         parser = CsvParser()
         result = parser.parse(path, _make_doc(path))
 
-        assert "headers" in result.metadata
-        headers = result.metadata["headers"]
+        assert result.document.detected_schema is not None
+        headers = result.document.detected_schema.get("headers")
         assert isinstance(headers, list)
         assert "Name" in headers
 

@@ -19,26 +19,39 @@ class ParseError(Exception):
 
 
 class ParseResult(BaseModel):
-    """Output of a successful parse operation."""
+    """Output of a successful parse operation.
 
+    Contains both the normalized document object (with page_count,
+    sheet_names, detected_schema populated by the parser) and the
+    extracted evidence chunks.
+    """
+
+    document: FileDocument
     chunks: list[EvidenceChunk] = Field(default_factory=list)
-    metadata: dict[str, object] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
 
 
 class BaseParser(ABC):
-    """Abstract contract that every file-type parser must implement."""
+    """Abstract contract that every file-type parser must implement.
+
+    Each parser receives a FileDocument with basic upload metadata already set
+    (file_id, filename, type, size, path, hash). The parser must populate the
+    normalization fields it can determine (page_count, sheet_names,
+    detected_schema) and return the updated document inside ParseResult.
+    """
 
     @abstractmethod
     def parse(self, file_path: Path, file_doc: FileDocument) -> ParseResult:
-        """Parse a file and return normalized evidence chunks with citation anchors.
+        """Parse a file and return a normalized document object plus evidence chunks.
 
         Args:
             file_path: Absolute path to the uploaded file on disk.
             file_doc: The FileDocument metadata object for this file.
+                The parser must populate normalization fields on this object.
 
         Returns:
-            ParseResult containing evidence chunks, metadata, and warnings.
+            ParseResult containing the normalized document, evidence chunks,
+            and any warnings.
 
         Raises:
             ParseError: If the file cannot be parsed at all.

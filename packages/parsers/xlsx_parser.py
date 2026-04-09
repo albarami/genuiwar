@@ -28,6 +28,7 @@ class XlsxParser(BaseParser):
         chunks: list[EvidenceChunk] = []
         warnings: list[str] = []
         sheet_names: list[str] = wb.sheetnames
+        all_headers: dict[str, list[str]] = {}
 
         for sheet_name in sheet_names:
             ws = wb[sheet_name]
@@ -39,7 +40,8 @@ class XlsxParser(BaseParser):
                 warnings.append(f"Sheet '{sheet_name}' is empty")
                 continue
 
-            headers = rows[0] if rows else []
+            headers = rows[0]
+            all_headers[sheet_name] = headers
 
             for start in range(0, len(rows), _CHUNK_ROW_SIZE):
                 batch = rows[start : start + _CHUNK_ROW_SIZE]
@@ -68,8 +70,9 @@ class XlsxParser(BaseParser):
         if not chunks:
             warnings.append("XLSX file produced no content chunks")
 
-        return ParseResult(
-            chunks=chunks,
-            metadata={"sheet_names": sheet_names, "sheet_count": len(sheet_names)},
-            warnings=warnings,
-        )
+        file_doc.sheet_names = sheet_names
+        file_doc.detected_schema = {
+            "headers_by_sheet": {k: v for k, v in all_headers.items()},
+        }
+
+        return ParseResult(document=file_doc, chunks=chunks, warnings=warnings)

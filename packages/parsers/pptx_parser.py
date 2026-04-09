@@ -50,11 +50,6 @@ class PptxParser(BaseParser):
         if not chunks:
             warnings.append("PPTX file produced no content chunks")
 
-        return ParseResult(
-            chunks=chunks,
-            metadata={
-                "slide_count": len(prs.slides),
-                "page_count": len(prs.slides),
-            },
-            warnings=warnings,
-        )
+        file_doc.page_count = len(prs.slides)
+
+        return ParseResult(document=file_doc, chunks=chunks, warnings=warnings)

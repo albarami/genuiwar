@@ -39,7 +39,7 @@ class CsvParser(BaseParser):
             raise ParseError(str(file_path), "File appears to be binary, not CSV")
 
         if not text.strip():
-            return ParseResult(warnings=["CSV file is empty"])
+            return ParseResult(document=file_doc, warnings=["CSV file is empty"])
 
         try:
             dialect = csv.Sniffer().sniff(text[:4096])
@@ -50,7 +50,7 @@ class CsvParser(BaseParser):
         rows = list(reader)
 
         if not rows:
-            return ParseResult(warnings=["CSV file has no rows"])
+            return ParseResult(document=file_doc, warnings=["CSV file has no rows"])
 
         headers = rows[0]
         chunks: list[EvidenceChunk] = []
@@ -75,7 +75,6 @@ class CsvParser(BaseParser):
                 )
             )
 
-        return ParseResult(
-            chunks=chunks,
-            metadata={"row_count": len(rows), "headers": headers},
-        )
+        file_doc.detected_schema = {"headers": headers}
+
+        return ParseResult(document=file_doc, chunks=chunks)

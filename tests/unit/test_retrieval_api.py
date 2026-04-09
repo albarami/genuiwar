@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from apps.api.dependencies import chunk_repo
 from apps.api.main import app
-from packages.retrieval.store import chunk_store
 
 
 @pytest.fixture()
@@ -16,7 +16,7 @@ def anyio_backend() -> str:
 
 @pytest.fixture(autouse=True)
 def _clear_store() -> None:
-    chunk_store.clear()
+    chunk_repo.clear()
 
 
 @pytest.fixture()
@@ -87,7 +87,9 @@ class TestRetrievalAPI:
         )
         bundle_id = ret.json()["bundle"]["bundle_id"]
 
-        resp = await client.get(f"/api/v1/evidence/bundle/{bundle_id}")
+        resp = await client.get(
+            f"/api/v1/evidence/bundle/{bundle_id}"
+        )
         assert resp.status_code == 200
         assert resp.json()["bundle_id"] == bundle_id
 
@@ -95,7 +97,8 @@ class TestRetrievalAPI:
         self, client: AsyncClient
     ) -> None:
         resp = await client.get(
-            "/api/v1/evidence/bundle/00000000-0000-0000-0000-000000000000"
+            "/api/v1/evidence/bundle/"
+            "00000000-0000-0000-0000-000000000000"
         )
         assert resp.status_code == 404
 
@@ -113,7 +116,8 @@ class TestRetrievalAPI:
         self, client: AsyncClient
     ) -> None:
         resp = await client.get(
-            "/api/v1/evidence/chunks/00000000-0000-0000-0000-000000000000"
+            "/api/v1/evidence/chunks/"
+            "00000000-0000-0000-0000-000000000000"
         )
         assert resp.status_code == 404
 

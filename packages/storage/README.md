@@ -2,7 +2,27 @@
 
 Storage adapters and persistence helpers.
 
-Handles conversations, messages, runs, events, evidence bundles,
-claim ledgers, calculation results, adjudication results, final answer payloads.
+## Current state (Phase 3 final)
 
-Postgres via SQLAlchemy. Local file storage for uploads and artifacts.
+- `base.py` — Abstract repository contracts: `ChunkRepository`, `BundleRepository`, `CalculationRepository`
+- `memory.py` — In-memory implementations (default for local dev)
+- `postgres.py` — Postgres implementations using SQLAlchemy
+- `database.py` — SQLAlchemy engine and session factory
+- `models.py` — ORM models for all three entity types
+- `migrations/` — Alembic migration directory
+
+## Backend selection
+
+Set `RETRIEVAL_BACKEND` in `.env`:
+- `local` (default) — in-memory repositories
+- `postgres` — Postgres-backed repositories
+
+## To activate Postgres
+
+```bash
+docker compose up -d
+alembic upgrade head
+# set RETRIEVAL_BACKEND=postgres in .env
+```
+
+See `docs/18_persistence_and_retrieval_roadmap.md` for the full migration plan.

@@ -16,5 +16,7 @@ class CalculationResult(BaseModel):
     inputs: dict[str, Any]
     result: Any
     trace: list[str] = Field(default_factory=list)
+    input_units: dict[str, str] = Field(default_factory=dict)
+    output_unit: str | None = None
     evidence_refs: list[UUID] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))

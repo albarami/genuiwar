@@ -7,9 +7,9 @@ from packages.parsers.docx_parser import DocxParser
 from packages.parsers.xlsx_parser import XlsxParser
 from packages.retrieval.base import RetrievalFilters
 from packages.retrieval.local import LocalKeywordRetriever
-from packages.retrieval.store import ChunkStore
 from packages.schemas.document import FileDocument
 from packages.schemas.enums import FileType
+from packages.storage import InMemoryChunkRepository
 
 
 def _make_doc(path: Path, ft: FileType) -> FileDocument:
@@ -25,7 +25,7 @@ class TestMixedFileRetrieval:
     def test_retrieve_across_docx_and_xlsx(
         self, fixtures_dir: Path
     ) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
 
         docx_path = fixtures_dir / "clean_report.docx"
         docx_doc = _make_doc(docx_path, FileType.DOCX)
@@ -47,7 +47,7 @@ class TestMixedFileRetrieval:
     def test_retrieve_csv_and_docx_mixed(
         self, fixtures_dir: Path
     ) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
 
         csv_path = fixtures_dir / "clean_data.csv"
         csv_doc = _make_doc(csv_path, FileType.CSV)
@@ -66,7 +66,7 @@ class TestMixedFileRetrieval:
     def test_filter_narrows_across_mixed_types(
         self, fixtures_dir: Path
     ) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
 
         csv_path = fixtures_dir / "clean_data.csv"
         csv_doc = _make_doc(csv_path, FileType.CSV)
@@ -94,7 +94,7 @@ class TestMixedFileRetrieval:
     def test_messy_file_chunks_retrievable(
         self, fixtures_dir: Path
     ) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
 
         path = fixtures_dir / "messy_report.docx"
         doc = _make_doc(path, FileType.DOCX)
@@ -108,7 +108,7 @@ class TestMixedFileRetrieval:
     def test_citation_anchors_differ_by_type(
         self, fixtures_dir: Path
     ) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
 
         docx_path = fixtures_dir / "clean_report.docx"
         docx_doc = _make_doc(docx_path, FileType.DOCX)

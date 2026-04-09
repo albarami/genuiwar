@@ -2,13 +2,12 @@
 
 Evidence search and bundle creation.
 
-## Current state (Phase 2)
+## Current state (Phase 3 final)
 
 - `base.py` — `BaseRetriever` ABC and `RetrievalFilters` model
-- `store.py` — `ChunkStore` in-memory chunk index (temporary; persistence deferred)
-- `local.py` — `LocalKeywordRetriever` keyword-matching backend
+- `local.py` — `LocalKeywordRetriever` operating over `ChunkRepository` abstraction
 
-Chunks are indexed after file upload. Retrieval returns `EvidenceBundle` objects
-with citation anchors preserved from the original parse.
+Chunks are persisted via `ChunkRepository` (in-memory or Postgres).
+Retrieval returns `EvidenceBundle` objects with citation anchors preserved.
 
 All final claims must map back to this layer.

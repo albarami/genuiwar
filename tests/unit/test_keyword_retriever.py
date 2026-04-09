@@ -4,8 +4,8 @@ from uuid import uuid4
 
 from packages.retrieval.base import RetrievalFilters
 from packages.retrieval.local import LocalKeywordRetriever
-from packages.retrieval.store import ChunkStore
 from packages.schemas.evidence import CitationAnchor, EvidenceChunk
+from packages.storage import InMemoryChunkRepository
 
 
 def _chunk(
@@ -30,10 +30,10 @@ def _chunk(
     )
 
 
-def _store_with(*chunks: EvidenceChunk) -> ChunkStore:
-    store = ChunkStore()
-    store.add_chunks(list(chunks))
-    return store
+def _store_with(*chunks: EvidenceChunk) -> InMemoryChunkRepository:
+    repo = InMemoryChunkRepository()
+    repo.add_chunks(list(chunks))
+    return repo
 
 
 class TestKeywordRetriever:
@@ -71,7 +71,7 @@ class TestKeywordRetriever:
         assert len(bundle.chunks) == 0
 
     def test_empty_store_returns_empty(self) -> None:
-        store = ChunkStore()
+        store = InMemoryChunkRepository()
         r = LocalKeywordRetriever(store)
         bundle = r.retrieve("anything", top_k=5)
         assert len(bundle.chunks) == 0

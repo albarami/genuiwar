@@ -3,8 +3,8 @@
 import re
 
 from packages.retrieval.base import BaseRetriever, RetrievalFilters
-from packages.retrieval.store import ChunkStore
 from packages.schemas.evidence import EvidenceBundle, EvidenceChunk
+from packages.storage.base import ChunkRepository
 
 
 def _tokenize(text: str) -> set[str]:
@@ -46,10 +46,10 @@ def _apply_filters(
 
 
 class LocalKeywordRetriever(BaseRetriever):
-    """Keyword-based retriever over an in-memory ChunkStore."""
+    """Keyword-based retriever over a ChunkRepository."""
 
-    def __init__(self, store: ChunkStore) -> None:
-        self._store = store
+    def __init__(self, repo: ChunkRepository) -> None:
+        self._repo = repo
 
     def retrieve(
         self,
@@ -58,7 +58,7 @@ class LocalKeywordRetriever(BaseRetriever):
         filters: RetrievalFilters | None = None,
     ) -> EvidenceBundle:
         """Retrieve top-k chunks by keyword overlap score."""
-        candidates = _apply_filters(self._store.get_all(), filters)
+        candidates = _apply_filters(self._repo.get_all(), filters)
         total_candidates = len(candidates)
 
         query_tokens = _tokenize(query)

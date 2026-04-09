@@ -10,8 +10,8 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from apps.api.dependencies import chunk_repo
 from packages.parsers import ParseError, get_parser
-from packages.retrieval.store import chunk_store
 from packages.schemas.document import FileDocument
 from packages.schemas.enums import FileType
 from packages.shared.config import get_settings
@@ -40,11 +40,7 @@ class FileUploadResponse(BaseModel):
 
 @router.post("/upload", response_model=FileUploadResponse)
 async def upload_file(file: UploadFile) -> FileUploadResponse:
-    """Upload a file, validate its type, save it, and parse it.
-
-    Returns the normalized FileDocument (populated by the parser)
-    plus parse results summary.
-    """
+    """Upload a file, validate its type, save it, and parse it."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is required")
 
@@ -87,7 +83,7 @@ async def upload_file(file: UploadFile) -> FileUploadResponse:
         ) from exc
 
     normalized_doc = result.document
-    chunk_store.add_chunks(result.chunks)
+    chunk_repo.add_chunks(result.chunks)
 
     response = FileUploadResponse(
         file_document=normalized_doc,
